@@ -1,0 +1,6 @@
+AGENTS.md
+.codex/tasks/
+node_modules/
+dist/
+.npm-cache/
+output/
