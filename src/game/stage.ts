@@ -34,7 +34,7 @@ export const stageNodes: StageNode[] = [
   { pos: { x: -10, y: 8 }, bias: [1.0, 0.4] },
   { pos: { x: -2.2, y: -4.4 }, bias: [0.9, 0.9] },
   { pos: { x: -2.2, y: 4.4 }, bias: [0.9, 0.9] },
-  { pos: { x: 0, y: 3.2 }, bias: [0.8, 0.8] },
+  { pos: { x: 1.8, y: 3.2 }, bias: [0.8, 0.8] },
   { pos: { x: 8.5, y: -8 }, bias: [0.4, 1.0] },
   { pos: { x: 8.5, y: 8 }, bias: [0.4, 1.0] },
   { pos: { x: 15.5, y: 0 }, bias: [0.2, 1.0] },

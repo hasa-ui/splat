@@ -35,5 +35,6 @@ describe("stage collision helpers", () => {
     expect(hasDirectPath({ x: -16, y: 0 }, stageNodes[5].pos)).toBe(false);
     expect(reachableStageNodeIndices({ x: -17, y: 4.2 })).toContain(5);
     expect(reachableStageNodeIndices({ x: -16, y: 0 })).not.toContain(5);
+    expect(reachableStageNodeIndices(stageNodes[5].pos)).toContain(7);
   });
 });
