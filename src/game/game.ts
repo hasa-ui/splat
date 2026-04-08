@@ -27,7 +27,18 @@ import { AudioBus } from "./audio";
 import { angleToVector, clamp, distance, dot, length, normalize, rotateToward, sub, vec, vectorToAngle } from "./math";
 import { InputManager } from "./input";
 import { PaintField } from "./paintField";
-import { ACTOR_RADIUS, STAGE_HEIGHT, STAGE_WIDTH, isBlocked, obstacles, resolveArenaMovement, stageNodes, teamSpawns, traceLineDistance } from "./stage";
+import {
+  ACTOR_RADIUS,
+  STAGE_HEIGHT,
+  STAGE_WIDTH,
+  isBlocked,
+  obstacles,
+  reachableStageNodeIndices,
+  resolveArenaMovement,
+  stageNodes,
+  teamSpawns,
+  traceLineDistance,
+} from "./stage";
 import type { ActorState, GameMode, MatchSnapshot, TeamId, Vec2 } from "./types";
 
 const FIXED_DT = 1 / 60;
@@ -551,9 +562,16 @@ export class InkGame {
       return;
     }
 
+    const reachableNodeIndices = reachableStageNodeIndices(actor.pos);
+    if (reachableNodeIndices.length === 0) {
+      actor.behavior = "paint";
+      actor.targetNode = actor.team === 0 ? 2 : 6;
+      return;
+    }
+
     let bestNode = actor.team === 0 ? 2 : 6;
     let bestScore = -Infinity;
-    for (let index = 0; index < stageNodes.length; index += 1) {
+    for (const index of reachableNodeIndices) {
       const node = stageNodes[index];
       const paintScore = -this.paintField.scoreAround(node.pos, 2.4, actor.team);
       const distancePenalty = distance(actor.pos, node.pos) * 0.18;

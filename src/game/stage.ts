@@ -34,7 +34,7 @@ export const stageNodes: StageNode[] = [
   { pos: { x: -10, y: 8 }, bias: [1.0, 0.4] },
   { pos: { x: -2.2, y: -4.4 }, bias: [0.9, 0.9] },
   { pos: { x: -2.2, y: 4.4 }, bias: [0.9, 0.9] },
-  { pos: { x: 3.6, y: 0 }, bias: [0.8, 0.8] },
+  { pos: { x: 0, y: 3.2 }, bias: [0.8, 0.8] },
   { pos: { x: 8.5, y: -8 }, bias: [0.4, 1.0] },
   { pos: { x: 8.5, y: 8 }, bias: [0.4, 1.0] },
   { pos: { x: 15.5, y: 0 }, bias: [0.2, 1.0] },
@@ -96,6 +96,34 @@ export function traceLineDistance(start: Vec2, direction: Vec2, maxDistance: num
     }
   }
   return clamp(distance, 0.8, maxDistance);
+}
+
+export function hasDirectPath(start: Vec2, end: Vec2, inflate = ACTOR_RADIUS): boolean {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const distance = Math.hypot(dx, dy);
+  const steps = Math.max(1, Math.ceil(distance / 0.2));
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const point = {
+      x: start.x + dx * t,
+      y: start.y + dy * t,
+    };
+    if (isBlocked(point, inflate)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function reachableStageNodeIndices(start: Vec2, inflate = ACTOR_RADIUS): number[] {
+  const reachable: number[] = [];
+  for (let index = 0; index < stageNodes.length; index += 1) {
+    if (hasDirectPath(start, stageNodes[index].pos, inflate)) {
+      reachable.push(index);
+    }
+  }
+  return reachable;
 }
 
 export function isBlocked(point: Vec2, inflate = 0): boolean {
