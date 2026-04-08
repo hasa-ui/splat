@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveArenaMovement, traceLineDistance } from "../src/game/stage";
+import { ACTOR_RADIUS, isBlocked, resolveArenaMovement, stageNodes, traceLineDistance } from "../src/game/stage";
 
 describe("stage collision helpers", () => {
   it("keeps actors inside arena bounds", () => {
@@ -14,5 +14,11 @@ describe("stage collision helpers", () => {
 
     expect(openDistance).toBeGreaterThan(6);
     expect(blockedDistance).toBeLessThan(4);
+  });
+
+  it("keeps all navigation nodes outside blocked geometry", () => {
+    for (const node of stageNodes) {
+      expect(isBlocked(node.pos, ACTOR_RADIUS)).toBe(false);
+    }
   });
 });

@@ -37,6 +37,7 @@ export class InputManager {
   private mouseAim: Vec2 = { x: 1, y: 0 };
   private shoot = false;
   private squidHeld = false;
+  private squidPointerId: number | null = null;
   private pauseToggle = false;
   private coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   private enabled = false;
@@ -54,6 +55,13 @@ export class InputManager {
       this.move = { x: 0, y: 0 };
       this.shoot = false;
       this.squidHeld = false;
+      if (
+        this.squidPointerId !== null &&
+        this.refs.squidButton.hasPointerCapture(this.squidPointerId)
+      ) {
+        this.refs.squidButton.releasePointerCapture(this.squidPointerId);
+      }
+      this.squidPointerId = null;
       this.resetStick(this.leftTouch, this.refs.left.knob);
       this.resetStick(this.rightTouch, this.refs.right.knob);
     }
@@ -184,12 +192,29 @@ export class InputManager {
       this.squidHeld = active;
     };
 
+    const releaseSquidPointer = (event: PointerEvent) => {
+      if (this.squidPointerId !== event.pointerId) {
+        return;
+      }
+      if (this.refs.squidButton.hasPointerCapture(event.pointerId)) {
+        this.refs.squidButton.releasePointerCapture(event.pointerId);
+      }
+      this.squidPointerId = null;
+      squidPress(false);
+    };
+
     this.refs.squidButton.addEventListener("pointerdown", (event) => {
       event.preventDefault();
+      this.squidPointerId = event.pointerId;
+      this.refs.squidButton.setPointerCapture(event.pointerId);
       squidPress(true);
     });
-    this.refs.squidButton.addEventListener("pointerup", () => squidPress(false));
-    this.refs.squidButton.addEventListener("pointercancel", () => squidPress(false));
+    this.refs.squidButton.addEventListener("pointerup", releaseSquidPointer);
+    this.refs.squidButton.addEventListener("pointercancel", releaseSquidPointer);
+    this.refs.squidButton.addEventListener("lostpointercapture", () => {
+      this.squidPointerId = null;
+      squidPress(false);
+    });
 
     window.addEventListener("resize", () => {
       this.coarsePointer = window.matchMedia("(pointer: coarse)").matches;
