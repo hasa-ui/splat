@@ -24,6 +24,7 @@ import {
   NearestFilter,
 } from "three";
 import { AudioBus } from "./audio";
+import { scoreBotNodeCandidate } from "./botGoal";
 import { angleToVector, clamp, distance, dot, length, normalize, rotateToward, sub, vec, vectorToAngle } from "./math";
 import { InputManager } from "./input";
 import { PaintField } from "./paintField";
@@ -574,9 +575,15 @@ export class InkGame {
     for (const index of reachableNodeIndices) {
       const node = stageNodes[index];
       const paintScore = -this.paintField.scoreAround(node.pos, 2.4, actor.team);
-      const distancePenalty = distance(actor.pos, node.pos) * 0.18;
-      const bias = node.bias[actor.team] * 2.8;
-      const score = paintScore + bias - distancePenalty;
+      const score = scoreBotNodeCandidate({
+        actorPos: actor.pos,
+        currentTargetNode: actor.targetNode,
+        candidateIndex: index,
+        reachableNodeCount: reachableNodeIndices.length,
+        team: actor.team,
+        node,
+        paintScore,
+      });
       if (score > bestScore) {
         bestScore = score;
         bestNode = index;
