@@ -1,6 +1,9 @@
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+const GITHUB_PAGES_BASE = "/splat/";
+
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? GITHUB_PAGES_BASE : "/",
   server: {
     host: "0.0.0.0",
     port: 5173,
@@ -11,4 +14,4 @@ export default defineConfig({
       reporter: ["text", "html"],
     },
   },
-});
+}));

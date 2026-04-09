@@ -9,3 +9,4 @@ Original prompt: Implement the plan for an offline-capable mobile-friendly brows
 - 2026-04-08: Adjusted the contested center node again so it is both reachable from the upper lane and connected onward to another paint target, preventing bots from parking at a dead-end node.
 - 2026-04-08: Fixed the remaining node-5 stall by penalizing bots that keep reselecting a nearby contest node after that area is already neutral or friendly, while still allowing them to stay if repaint pressure remains high.
 - 2026-04-08: Made the node-5 settled-contest penalty persist after the first retarget by basing it on proximity to the candidate node rather than the previous target id.
+- 2026-04-09: Added GitHub Pages deployment support with a build-time `/splat/` base path, a Pages Actions workflow, and a README that documents local development and publishing.
