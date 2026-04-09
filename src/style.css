@@ -186,6 +186,9 @@ body {
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  pointer-events: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .center-note h1,

@@ -18,10 +18,11 @@ const TITLE_MARKUP = `
     <button class="quiet-btn">Mute SFX</button>
   </div>
 `;
+const LONG_TITLE_COPY = "<p class=\"intro-copy\">Repaint the ramps, keep moving, and stay alive through the full three-minute timer.</p>".repeat(8);
 
 const scenarios = [
   { name: "landscape-standard", viewport: { width: 844, height: 390 }, mode: "title" },
-  { name: "landscape-short", viewport: { width: 667, height: 320 }, mode: "title" },
+  { name: "landscape-short", viewport: { width: 667, height: 320 }, mode: "title", requireScrollableCenter: true },
   { name: "landscape-play", viewport: { width: 667, height: 320 }, mode: "play" },
   { name: "portrait-rotate-note", viewport: { width: 430, height: 932 }, mode: "portrait" },
 ];
@@ -50,7 +51,7 @@ async function main() {
     await page.goto(TARGET_URL, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(250);
 
-    const metrics = await page.evaluate(({ mode, titleMarkup }) => {
+    const metrics = await page.evaluate(({ mode, titleMarkup, requireScrollableCenter, longTitleCopy }) => {
       const center = document.querySelector("#center-note");
       const rotate = document.querySelector(".rotate-note");
       if (!center || !rotate) {
@@ -59,7 +60,7 @@ async function main() {
 
       if (mode === "title") {
         center.classList.remove("overlay-hidden");
-        center.innerHTML = titleMarkup;
+        center.innerHTML = requireScrollableCenter ? `${titleMarkup}${longTitleCopy}` : titleMarkup;
       } else if (mode === "play") {
         center.classList.add("overlay-hidden");
       }
@@ -76,6 +77,9 @@ async function main() {
           width: rect.width,
           height: rect.height,
           display: getComputedStyle(el).display,
+          pointerEvents: getComputedStyle(el).pointerEvents,
+          clientHeight: el.clientHeight,
+          scrollHeight: el.scrollHeight,
         };
       };
 
@@ -90,7 +94,12 @@ async function main() {
         pauseButton: pick("#pause-button"),
         rotateNote: pick(".rotate-note"),
       };
-    }, { mode: scenario.mode, titleMarkup: TITLE_MARKUP });
+    }, {
+      mode: scenario.mode,
+      titleMarkup: TITLE_MARKUP,
+      requireScrollableCenter: scenario.requireScrollableCenter ?? false,
+      longTitleCopy: LONG_TITLE_COPY,
+    });
 
     if (scenario.mode === "portrait") {
       if (!metrics.rotateNote || metrics.rotateNote.display === "none") {
@@ -105,6 +114,14 @@ async function main() {
       assertWithinViewport(`${scenario.name}: right stick`, metrics.rightZone, metrics.viewportHeight);
       assertWithinViewport(`${scenario.name}: squid button`, metrics.squidButton, metrics.viewportHeight);
       assertWithinViewport(`${scenario.name}: pause button`, metrics.pauseButton, metrics.viewportHeight);
+      if (scenario.requireScrollableCenter) {
+        if (!metrics.center || metrics.center.pointerEvents !== "auto") {
+          throw new Error(`${scenario.name}: center note must accept pointer input for scrolling`);
+        }
+        if (metrics.center.scrollHeight <= metrics.center.clientHeight) {
+          throw new Error(`${scenario.name}: center note should overflow in the short-height scenario`);
+        }
+      }
     }
 
     console.log(JSON.stringify({ scenario: scenario.name, metrics }, null, 2));
