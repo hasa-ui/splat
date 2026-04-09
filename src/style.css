@@ -37,7 +37,9 @@ body {
 #app,
 .shell {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100svh;
+  height: 100dvh;
 }
 
 .shell {
@@ -82,7 +84,7 @@ body {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   pointer-events: none;
   padding: env(safe-area-inset-top, 0) max(16px, env(safe-area-inset-right, 0))
     env(safe-area-inset-bottom, 0) max(16px, env(safe-area-inset-left, 0));
@@ -172,6 +174,8 @@ body {
 .center-note {
   place-self: center;
   min-width: min(520px, calc(100vw - 40px));
+  max-width: min(520px, calc(100vw - 40px));
+  max-height: 100%;
   padding: 22px 24px;
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -179,6 +183,9 @@ body {
   box-shadow: var(--shadow);
   text-align: center;
   backdrop-filter: blur(18px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .center-note h1,
@@ -439,6 +446,306 @@ body {
   .meter-wrap {
     min-width: 0;
     flex: 1;
+  }
+}
+
+@media (max-height: 430px) {
+  .hud {
+    padding: env(safe-area-inset-top, 0) max(12px, env(safe-area-inset-right, 0))
+      env(safe-area-inset-bottom, 0) max(12px, env(safe-area-inset-left, 0));
+  }
+
+  .topbar,
+  .footer-panels {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .badge-stack,
+  .score-card,
+  .meter-wrap,
+  .status-chip {
+    border-radius: 18px;
+  }
+
+  .badge-stack {
+    min-width: 164px;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .score-card {
+    padding: 10px 12px 12px;
+  }
+
+  .timer-value {
+    font-size: clamp(1.5rem, 4vw, 2.6rem);
+  }
+
+  .center-note {
+    min-width: min(500px, calc(100vw - 24px));
+    max-width: min(500px, calc(100vw - 24px));
+    padding: 16px 18px;
+    border-radius: 24px;
+  }
+
+  .brand {
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .brand-mark {
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
+
+  .brand-sub {
+    font-size: 0.72rem;
+    letter-spacing: 0.26em;
+  }
+
+  .headline {
+    font-size: clamp(1.45rem, 4vw, 2.2rem);
+    margin-bottom: 10px;
+  }
+
+  .intro-copy,
+  .result-copy {
+    margin: 0 auto 14px;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .controls-grid {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .control-tile {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .action-btn,
+  .quiet-btn {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+  }
+
+  .meter-wrap {
+    min-width: min(220px, 48vw);
+    padding: 10px 12px 12px;
+  }
+
+  .meter-bar {
+    height: 14px;
+  }
+
+  .meter-meta {
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .status-chip {
+    padding: 10px 14px;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
+  .stick-zone {
+    bottom: max(12px, env(safe-area-inset-bottom, 0) + 6px);
+    width: min(30vw, 160px);
+    height: min(30vw, 160px);
+  }
+
+  .stick-zone.left {
+    left: 14px;
+  }
+
+  .stick-zone.right {
+    right: 14px;
+  }
+
+  .stick-knob {
+    width: 60px;
+    height: 60px;
+    margin-left: -30px;
+    margin-top: -30px;
+  }
+
+  .squid-button {
+    right: min(33vw, 180px);
+    bottom: max(16px, env(safe-area-inset-bottom, 0) + 8px);
+    width: 72px;
+    height: 72px;
+    border-radius: 24px;
+    font-size: 0.82rem;
+  }
+
+  .pause-button {
+    top: max(12px, env(safe-area-inset-top, 0) + 6px);
+    right: 14px;
+    padding: 8px 14px;
+  }
+}
+
+@media (max-height: 360px) {
+  .hud {
+    padding: env(safe-area-inset-top, 0) max(10px, env(safe-area-inset-right, 0))
+      env(safe-area-inset-bottom, 0) max(10px, env(safe-area-inset-left, 0));
+  }
+
+  .topbar,
+  .footer-panels {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .badge-stack,
+  .score-card,
+  .meter-wrap,
+  .status-chip {
+    border-radius: 16px;
+  }
+
+  .badge-stack {
+    min-width: 148px;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .score-card {
+    padding: 8px 10px 10px;
+  }
+
+  .timer-label,
+  .score-label,
+  .meter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+  }
+
+  .timer-value {
+    font-size: clamp(1.25rem, 3.6vw, 2rem);
+  }
+
+  .score-row {
+    grid-template-columns: 48px 1fr 48px;
+    gap: 8px;
+  }
+
+  .score-value {
+    font-size: 1rem;
+  }
+
+  .center-note {
+    min-width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    padding: 12px 14px;
+    border-radius: 20px;
+  }
+
+  .brand {
+    margin-bottom: 6px;
+  }
+
+  .brand-mark {
+    font-size: clamp(1.65rem, 5vw, 2.4rem);
+  }
+
+  .brand-sub {
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+  }
+
+  .headline {
+    font-size: clamp(1.2rem, 3.6vw, 1.85rem);
+    margin-bottom: 8px;
+  }
+
+  .intro-copy,
+  .result-copy {
+    margin: 0 auto 10px;
+    font-size: 0.82rem;
+    line-height: 1.28;
+  }
+
+  .controls-grid {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .control-tile {
+    padding: 8px;
+  }
+
+  .control-tile strong {
+    margin-bottom: 4px;
+  }
+
+  .launch-row {
+    gap: 8px;
+  }
+
+  .action-btn,
+  .quiet-btn {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+
+  .meter-wrap {
+    min-width: min(188px, 45vw);
+    padding: 8px 10px 10px;
+  }
+
+  .meter-meta {
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 0.74rem;
+  }
+
+  .status-chip {
+    padding: 8px 12px;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .stick-zone {
+    bottom: max(8px, env(safe-area-inset-bottom, 0) + 4px);
+    width: min(28vw, 136px);
+    height: min(28vw, 136px);
+  }
+
+  .stick-zone.left {
+    left: 10px;
+  }
+
+  .stick-zone.right {
+    right: 10px;
+  }
+
+  .stick-knob {
+    width: 52px;
+    height: 52px;
+    margin-left: -26px;
+    margin-top: -26px;
+  }
+
+  .squid-button {
+    right: min(31vw, 150px);
+    bottom: max(10px, env(safe-area-inset-bottom, 0) + 6px);
+    width: 64px;
+    height: 64px;
+    border-radius: 22px;
+    font-size: 0.74rem;
+  }
+
+  .pause-button {
+    top: max(8px, env(safe-area-inset-top, 0) + 4px);
+    right: 10px;
+    padding: 7px 12px;
+    font-size: 0.9rem;
   }
 }
 
