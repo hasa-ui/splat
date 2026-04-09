@@ -3,14 +3,10 @@ import {
   CanvasTexture,
   CircleGeometry,
   Color,
-  Fog,
-  GridHelper,
   Group,
-  HemisphereLight,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
@@ -18,7 +14,6 @@ import {
   Texture,
   Vector3,
   WebGLRenderer,
-  DirectionalLight,
   CylinderGeometry,
   SphereGeometry,
   NearestFilter,
@@ -49,6 +44,7 @@ const MAX_HP = 4;
 const MAX_INK = 1;
 const ALLY = new Color("#1fe4a8");
 const ENEMY = new Color("#ff5c8a");
+const INVULN_TINT = new Color("#f8fff7");
 const ARENA_CENTER = new Vector3(0, 0, 0);
 
 interface HudRefs {
@@ -155,21 +151,11 @@ export class InkGame {
 
   private buildScene(): void {
     this.scene.background = new Color("#081116");
-    this.scene.fog = new Fog("#081116", 22, 56);
-
-    const hemi = new HemisphereLight("#c8fff1", "#041016", 1.8);
-    this.scene.add(hemi);
-
-    const key = new DirectionalLight("#f8fff7", 1.4);
-    key.position.set(-14, 25, 10);
-    this.scene.add(key);
 
     const floor = new Mesh(
       new PlaneGeometry(STAGE_WIDTH, STAGE_HEIGHT),
-      new MeshStandardMaterial({
+      new MeshBasicMaterial({
         map: this.paintTexture,
-        roughness: 0.95,
-        metalness: 0.04,
       }),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -184,14 +170,7 @@ export class InkGame {
     underlay.position.y = -0.02;
     this.scene.add(underlay);
 
-    const grid = new GridHelper(STAGE_WIDTH, 24, "#ffffff", "#7aa09b");
-    grid.position.y = 0.03;
-    const gridMaterial = Array.isArray(grid.material) ? grid.material[0] : grid.material;
-    gridMaterial.opacity = 0.11;
-    gridMaterial.transparent = true;
-    this.scene.add(grid);
-
-    const railMaterial = new MeshStandardMaterial({ color: "#162027", roughness: 0.9 });
+    const railMaterial = new MeshBasicMaterial({ color: "#162027" });
     const rails = [
       { x: 0, z: -STAGE_HEIGHT * 0.5 - 0.35, w: STAGE_WIDTH + 1.2, d: 0.55 },
       { x: 0, z: STAGE_HEIGHT * 0.5 + 0.35, w: STAGE_WIDTH + 1.2, d: 0.55 },
@@ -207,7 +186,7 @@ export class InkGame {
     for (const obstacle of obstacles) {
       const mesh = new Mesh(
         new BoxGeometry(obstacle.half.x * 2, obstacle.height, obstacle.half.y * 2),
-        new MeshStandardMaterial({ color: obstacle.color, roughness: 0.85 }),
+        new MeshBasicMaterial({ color: obstacle.color }),
       );
       mesh.position.set(obstacle.pos.x, obstacle.height * 0.5, obstacle.pos.y);
       this.scene.add(mesh);
@@ -218,7 +197,7 @@ export class InkGame {
       for (const spawn of spawns) {
         const pad = new Mesh(
           new CylinderGeometry(1.1, 1.1, 0.18, 24),
-          new MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 }),
+          new MeshBasicMaterial({ color }),
         );
         pad.position.set(spawn.x, 0.09, spawn.y);
         this.scene.add(pad);
@@ -268,17 +247,17 @@ export class InkGame {
     const color = actor.team === 0 ? ALLY : ENEMY;
     const body = new Mesh(
       new CylinderGeometry(0.46, 0.52, 1.1, 14),
-      new MeshStandardMaterial({ color, roughness: 0.55, emissive: color, emissiveIntensity: actor.isPlayer ? 0.22 : 0.1 }),
+      new MeshBasicMaterial({ color }),
     );
     body.position.y = 0.72;
     const head = new Mesh(
       new SphereGeometry(0.34, 16, 16),
-      new MeshStandardMaterial({ color: "#eefcf7", roughness: 0.4 }),
+      new MeshBasicMaterial({ color: "#eefcf7" }),
     );
     head.position.y = 1.38;
     const marker = new Mesh(
       new CylinderGeometry(actor.isPlayer ? 0.18 : 0.1, actor.isPlayer ? 0.18 : 0.1, 0.1, 18),
-      new MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.35 }),
+      new MeshBasicMaterial({ color }),
     );
     marker.position.y = 1.9;
     const shadow = new Mesh(
@@ -818,8 +797,9 @@ export class InkGame {
       visual.marker.visible = actor.alive;
       (visual.shadow.material as MeshBasicMaterial).opacity = actor.alive ? 0.24 : 0.1;
 
-      const bodyMaterial = visual.body.material as MeshStandardMaterial;
-      bodyMaterial.emissiveIntensity = actor.invulnTimer > 0 ? 0.55 : actor.isPlayer ? 0.22 : 0.1;
+      const bodyMaterial = visual.body.material as MeshBasicMaterial;
+      const teamColor = actor.team === 0 ? ALLY : ENEMY;
+      bodyMaterial.color.lerpColors(teamColor, INVULN_TINT, actor.invulnTimer > 0 ? 0.45 : 0);
       visual.body.material = bodyMaterial;
     }
 
