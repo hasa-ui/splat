@@ -13,3 +13,6 @@ Original prompt: Implement the plan for an offline-capable mobile-friendly brows
 - 2026-04-09: Fixed the GitHub Pages preview regression by keeping the `/splat/` base in production preview while preserving `/` for local development mode.
 - 2026-04-09: Reduced the main entry bundle below the 500KB target by splitting `three` into a dedicated vendor chunk and adding an automated bundle-size check enforced by the Pages workflow.
 - 2026-04-09: Corrected the bundle budget to measure all eagerly loaded first-load JavaScript from `dist/index.html`, then trimmed Three scene features so the initial Pages payload now lands at 497488 bytes.
+- 2026-04-09: Fixed short-height mobile clipping by switching the shell to dynamic viewport units, constraining the center card inside a `minmax(0, 1fr)` HUD row, and shrinking HUD plus touch controls together under 430px and 360px heights.
+- 2026-04-09: Added a Playwright-based DOM layout verifier that checks representative landscape and portrait viewports without depending on WebGL rendering.
+- 2026-04-09: Restored pointer input to the scrollable center card and taught the layout verifier to assert `pointer-events: auto` plus real overflow in the `667x320` short-height overlay case.
