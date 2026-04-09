@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "check:bundle-size": "node scripts/check-index-bundle-size.cjs",
     "preview": "vite preview",
     "test": "vitest run",
     "verify:playwright": "node scripts/verify-playwright.cjs"
