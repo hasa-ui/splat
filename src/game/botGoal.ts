@@ -4,7 +4,6 @@ import type { StageNode } from "./stage";
 
 interface ScoreBotNodeCandidateParams {
   actorPos: Vec2;
-  currentTargetNode: number;
   candidateIndex: number;
   reachableNodeCount: number;
   team: TeamId;
@@ -20,7 +19,6 @@ const SETTLED_CONTEST_PENALTY = 3;
 
 export function scoreBotNodeCandidate({
   actorPos,
-  currentTargetNode,
   candidateIndex,
   reachableNodeCount,
   team,
@@ -29,11 +27,8 @@ export function scoreBotNodeCandidate({
 }: ScoreBotNodeCandidateParams): number {
   let score = paintScore + node.bias[team] * 2.8 - distance(actorPos, node.pos) * 0.18;
 
-  const isCurrentTarget = candidateIndex === currentTargetNode;
-  const isContestNode =
-    currentTargetNode >= CONTEST_NODE_MIN && currentTargetNode <= CONTEST_NODE_MAX;
+  const isContestNode = candidateIndex >= CONTEST_NODE_MIN && candidateIndex <= CONTEST_NODE_MAX;
   const isSettledContestNode =
-    isCurrentTarget &&
     isContestNode &&
     reachableNodeCount > 1 &&
     distance(actorPos, node.pos) <= SETTLED_CONTEST_DISTANCE &&

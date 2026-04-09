@@ -577,7 +577,6 @@ export class InkGame {
       const paintScore = -this.paintField.scoreAround(node.pos, 2.4, actor.team);
       const score = scoreBotNodeCandidate({
         actorPos: actor.pos,
-        currentTargetNode: actor.targetNode,
         candidateIndex: index,
         reachableNodeCount: reachableNodeIndices.length,
         team: actor.team,

@@ -7,7 +7,6 @@ describe("scoreBotNodeCandidate", () => {
     const actorPos = stageNodes[5].pos;
     const stayScore = scoreBotNodeCandidate({
       actorPos,
-      currentTargetNode: 5,
       candidateIndex: 5,
       reachableNodeCount: 2,
       team: 0,
@@ -16,7 +15,6 @@ describe("scoreBotNodeCandidate", () => {
     });
     const moveScore = scoreBotNodeCandidate({
       actorPos,
-      currentTargetNode: 5,
       candidateIndex: 7,
       reachableNodeCount: 2,
       team: 0,
@@ -31,7 +29,6 @@ describe("scoreBotNodeCandidate", () => {
     const actorPos = stageNodes[5].pos;
     const stayScore = scoreBotNodeCandidate({
       actorPos,
-      currentTargetNode: 5,
       candidateIndex: 5,
       reachableNodeCount: 2,
       team: 0,
@@ -40,7 +37,6 @@ describe("scoreBotNodeCandidate", () => {
     });
     const moveScore = scoreBotNodeCandidate({
       actorPos,
-      currentTargetNode: 5,
       candidateIndex: 7,
       reachableNodeCount: 2,
       team: 0,
@@ -49,5 +45,27 @@ describe("scoreBotNodeCandidate", () => {
     });
 
     expect(stayScore).toBeGreaterThan(moveScore);
+  });
+
+  it("keeps the penalty active after the bot has already retargeted away", () => {
+    const actorPos = { x: 2.4, y: 3.6 };
+    const returnScore = scoreBotNodeCandidate({
+      actorPos,
+      candidateIndex: 5,
+      reachableNodeCount: 2,
+      team: 0,
+      node: stageNodes[5],
+      paintScore: 0,
+    });
+    const continueScore = scoreBotNodeCandidate({
+      actorPos,
+      candidateIndex: 7,
+      reachableNodeCount: 2,
+      team: 0,
+      node: stageNodes[7],
+      paintScore: 0,
+    });
+
+    expect(continueScore).toBeGreaterThan(returnScore);
   });
 });
