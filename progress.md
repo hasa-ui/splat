@@ -16,3 +16,4 @@ Original prompt: Implement the plan for an offline-capable mobile-friendly brows
 - 2026-04-09: Fixed short-height mobile clipping by switching the shell to dynamic viewport units, constraining the center card inside a `minmax(0, 1fr)` HUD row, and shrinking HUD plus touch controls together under 430px and 360px heights.
 - 2026-04-09: Added a Playwright-based DOM layout verifier that checks representative landscape and portrait viewports without depending on WebGL rendering.
 - 2026-04-09: Restored pointer input to the scrollable center card and taught the layout verifier to assert `pointer-events: auto` plus real overflow in the `667x320` short-height overlay case.
+- 2026-04-10: Added `docs/spec.md`, `docs/roadmap.md`, and `docs/tasks.md` to document the current prototype, the offline browser-realistic target spec, and the phased implementation backlog for a more Splatoon-like feature set.
