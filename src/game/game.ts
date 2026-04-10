@@ -19,28 +19,31 @@ import {
   NearestFilter,
 } from "three";
 import { AudioBus } from "./audio";
+import { createActorState, restoreActorState } from "./actors";
 import { scoreBotNodeCandidate } from "./botGoal";
-import { angleToVector, clamp, distance, dot, length, normalize, rotateToward, sub, vec, vectorToAngle } from "./math";
+import {
+  DEFAULT_LOADOUT_ID,
+  DEFAULT_RULE_ID,
+  DEFAULT_STAGE_ID,
+  getLoadoutDefinition,
+  getMatchRuleDefinition,
+  getStageDefinition,
+  getWeaponDefinition,
+} from "./definitions";
+import { angleToVector, clamp, distance, dot, length, normalize, rotateToward, sub, vectorToAngle } from "./math";
 import { InputManager } from "./input";
 import { PaintField } from "./paintField";
 import {
   ACTOR_RADIUS,
-  STAGE_HEIGHT,
-  STAGE_WIDTH,
   isBlocked,
-  obstacles,
   reachableStageNodeIndices,
   resolveArenaMovement,
-  stageNodes,
-  teamSpawns,
   traceLineDistance,
 } from "./stage";
-import type { ActorState, GameMode, MatchSnapshot, TeamId, Vec2 } from "./types";
+import type { ActorState, GameMode, MatchSnapshot, Vec2 } from "./types";
 
 const FIXED_DT = 1 / 60;
-const MATCH_SECONDS = 180;
 const COUNTDOWN_SECONDS = 3;
-const MAX_HP = 4;
 const MAX_INK = 1;
 const ALLY = new Color("#1fe4a8");
 const ENEMY = new Color("#ff5c8a");
@@ -82,7 +85,14 @@ export class InkGame {
   private readonly camera = new PerspectiveCamera(56, 1, 0.1, 100);
   private readonly paintCanvas = document.createElement("canvas");
   private readonly paintTexture: Texture;
-  private readonly paintField = new PaintField(128, 96, STAGE_WIDTH, STAGE_HEIGHT);
+  private readonly stageDefinition = getStageDefinition(DEFAULT_STAGE_ID);
+  private readonly matchRuleDefinition = getMatchRuleDefinition(DEFAULT_RULE_ID);
+  private readonly paintField = new PaintField(
+    this.stageDefinition.paintFieldLayout.width,
+    this.stageDefinition.paintFieldLayout.height,
+    this.stageDefinition.width,
+    this.stageDefinition.height,
+  );
   private readonly actors: ActorState[] = [];
   private readonly actorVisuals = new Map<string, ActorVisual>();
   private readonly input: InputManager;
@@ -92,7 +102,7 @@ export class InkGame {
   private readonly cameraPosition = new Vector3();
   private readonly pointerHint = new Vector3();
   private mode: GameMode = "title";
-  private matchTimer = MATCH_SECONDS;
+  private matchTimer = this.matchRuleDefinition.durationSeconds;
   private countdown = COUNTDOWN_SECONDS;
   private accumulator = 0;
   private lastFrame = performance.now();
@@ -153,7 +163,7 @@ export class InkGame {
     this.scene.background = new Color("#081116");
 
     const floor = new Mesh(
-      new PlaneGeometry(STAGE_WIDTH, STAGE_HEIGHT),
+      new PlaneGeometry(this.stageDefinition.width, this.stageDefinition.height),
       new MeshBasicMaterial({
         map: this.paintTexture,
       }),
@@ -163,7 +173,7 @@ export class InkGame {
     this.scene.add(floor);
 
     const underlay = new Mesh(
-      new PlaneGeometry(STAGE_WIDTH + 4, STAGE_HEIGHT + 4),
+      new PlaneGeometry(this.stageDefinition.width + 4, this.stageDefinition.height + 4),
       new MeshBasicMaterial({ color: "#0b141b" }),
     );
     underlay.rotation.x = -Math.PI / 2;
@@ -172,10 +182,10 @@ export class InkGame {
 
     const railMaterial = new MeshBasicMaterial({ color: "#162027" });
     const rails = [
-      { x: 0, z: -STAGE_HEIGHT * 0.5 - 0.35, w: STAGE_WIDTH + 1.2, d: 0.55 },
-      { x: 0, z: STAGE_HEIGHT * 0.5 + 0.35, w: STAGE_WIDTH + 1.2, d: 0.55 },
-      { x: -STAGE_WIDTH * 0.5 - 0.35, z: 0, w: 0.55, d: STAGE_HEIGHT + 1.2 },
-      { x: STAGE_WIDTH * 0.5 + 0.35, z: 0, w: 0.55, d: STAGE_HEIGHT + 1.2 },
+      { x: 0, z: -this.stageDefinition.height * 0.5 - 0.35, w: this.stageDefinition.width + 1.2, d: 0.55 },
+      { x: 0, z: this.stageDefinition.height * 0.5 + 0.35, w: this.stageDefinition.width + 1.2, d: 0.55 },
+      { x: -this.stageDefinition.width * 0.5 - 0.35, z: 0, w: 0.55, d: this.stageDefinition.height + 1.2 },
+      { x: this.stageDefinition.width * 0.5 + 0.35, z: 0, w: 0.55, d: this.stageDefinition.height + 1.2 },
     ];
     for (const rail of rails) {
       const mesh = new Mesh(new BoxGeometry(rail.w, 1.1, rail.d), railMaterial);
@@ -183,7 +193,7 @@ export class InkGame {
       this.scene.add(mesh);
     }
 
-    for (const obstacle of obstacles) {
+    for (const obstacle of this.stageDefinition.obstacles) {
       const mesh = new Mesh(
         new BoxGeometry(obstacle.half.x * 2, obstacle.height, obstacle.half.y * 2),
         new MeshBasicMaterial({ color: obstacle.color }),
@@ -192,7 +202,7 @@ export class InkGame {
       this.scene.add(mesh);
     }
 
-    for (const [teamKey, spawns] of Object.entries(teamSpawns)) {
+    for (const [teamKey, spawns] of Object.entries(this.stageDefinition.spawnPoints)) {
       const color = Number(teamKey) === 0 ? ALLY : ENEMY;
       for (const spawn of spawns) {
         const pad = new Mesh(
@@ -206,34 +216,12 @@ export class InkGame {
   }
 
   private seedActors(): void {
-    const createActor = (id: string, team: TeamId, isPlayer: boolean, spawnSlot: number): ActorState => ({
-      id,
-      team,
-      isPlayer,
-      spawnSlot,
-      pos: vec(),
-      vel: vec(),
-      aim: { x: team === 0 ? 1 : -1, y: 0 },
-      angle: team === 0 ? 0 : Math.PI,
-      ink: MAX_INK,
-      hp: MAX_HP,
-      alive: true,
-      squid: false,
-      respawnTimer: 0,
-      invulnTimer: 0,
-      shootCooldown: 0,
-      behavior: "paint",
-      targetNode: 0,
-      thinkTimer: 0,
-      meshJitter: Math.random() * Math.PI * 2,
-    });
-
-    this.actors.push(createActor("player", 0, true, 0));
-    this.actors.push(createActor("ally-1", 0, false, 1));
-    this.actors.push(createActor("ally-2", 0, false, 2));
-    this.actors.push(createActor("enemy-1", 1, false, 0));
-    this.actors.push(createActor("enemy-2", 1, false, 1));
-    this.actors.push(createActor("enemy-3", 1, false, 2));
+    this.actors.push(createActorState("player", 0, true, 0, DEFAULT_LOADOUT_ID));
+    this.actors.push(createActorState("ally-1", 0, false, 1, DEFAULT_LOADOUT_ID));
+    this.actors.push(createActorState("ally-2", 0, false, 2, DEFAULT_LOADOUT_ID));
+    this.actors.push(createActorState("enemy-1", 1, false, 0, DEFAULT_LOADOUT_ID));
+    this.actors.push(createActorState("enemy-2", 1, false, 1, DEFAULT_LOADOUT_ID));
+    this.actors.push(createActorState("enemy-3", 1, false, 2, DEFAULT_LOADOUT_ID));
 
     for (const actor of this.actors) {
       const visual = this.createActorVisual(actor);
@@ -295,44 +283,26 @@ export class InkGame {
   private resetRound(startCountdown: boolean): void {
     this.paintField.clear();
     for (const actor of this.actors) {
-      this.restoreActor(actor, true);
+      restoreActorState(actor, this.stageDefinition, true);
       if (!actor.isPlayer) {
         this.chooseBotGoal(actor);
       }
     }
 
-    for (const spawn of teamSpawns[0]) {
+    for (const spawn of this.stageDefinition.spawnPoints[0]) {
       this.paintField.stampWorld(spawn, 2.4, 0);
     }
-    for (const spawn of teamSpawns[1]) {
+    for (const spawn of this.stageDefinition.spawnPoints[1]) {
       this.paintField.stampWorld(spawn, 2.4, 1);
     }
 
-    this.matchTimer = MATCH_SECONDS;
+    this.matchTimer = this.matchRuleDefinition.durationSeconds;
     this.countdown = COUNTDOWN_SECONDS;
     this.mode = startCountdown ? "countdown" : "title";
     this.input.setEnabled(false);
     this.updatePaintTexture();
     this.renderCenterCard();
     this.renderHud();
-  }
-
-  private restoreActor(actor: ActorState, initial = false): void {
-    const spawn = teamSpawns[actor.team][actor.spawnSlot];
-    actor.pos = { x: spawn.x, y: spawn.y };
-    actor.vel = vec();
-    actor.aim = { x: actor.team === 0 ? 1 : -1, y: 0 };
-    actor.angle = actor.team === 0 ? 0 : Math.PI;
-    actor.ink = MAX_INK;
-    actor.hp = MAX_HP;
-    actor.alive = true;
-    actor.squid = false;
-    actor.respawnTimer = 0;
-    actor.invulnTimer = initial ? 0 : 1.2;
-    actor.shootCooldown = 0;
-    actor.behavior = actor.team === 0 ? "paint" : "contest";
-    actor.targetNode = actor.team === 0 ? 1 : 7;
-    actor.thinkTimer = MathUtils.randFloat(0.1, 0.4);
   }
 
   private loop(now: number): void {
@@ -423,6 +393,7 @@ export class InkGame {
     }
 
     const next = resolveArenaMovement(
+      this.stageDefinition,
       {
         x: actor.pos.x + move.x * speed * dt,
         y: actor.pos.y + move.y * speed * dt,
@@ -458,7 +429,10 @@ export class InkGame {
     }
 
     const nearbyEnemy = this.findVisibleEnemy(actor, 9.2, 0.8);
-    const targetPos = nearbyEnemy && actor.behavior === "chase" ? nearbyEnemy.pos : stageNodes[actor.targetNode].pos;
+    const targetPos =
+      nearbyEnemy && actor.behavior === "chase"
+        ? nearbyEnemy.pos
+        : this.stageDefinition.navigationNodes[actor.targetNode].pos;
     const desiredMove = normalize(sub(targetPos, actor.pos));
     const terrainOwner = this.paintField.sampleWorld(actor.pos.x, actor.pos.y);
     const targetDistance = distance(actor.pos, targetPos);
@@ -484,6 +458,7 @@ export class InkGame {
     }
 
     const next = resolveArenaMovement(
+      this.stageDefinition,
       {
         x: actor.pos.x + desiredMove.x * speed * dt,
         y: actor.pos.y + desiredMove.y * speed * dt,
@@ -526,14 +501,14 @@ export class InkGame {
     if (actor.respawnTimer > 0) {
       return;
     }
-    this.restoreActor(actor);
+    restoreActorState(actor, this.stageDefinition);
   }
 
   private chooseBotGoal(actor: ActorState): void {
     const visibleEnemy = this.findVisibleEnemy(actor, 7.2, 0.84);
     if (actor.hp <= 1 || actor.ink < 0.16) {
       actor.behavior = "retreat";
-      actor.targetNode = actor.team === 0 ? 1 : 7;
+      actor.targetNode = this.stageDefinition.ruleAnchors.retreatNodeByTeam[actor.team];
       return;
     }
     if (visibleEnemy) {
@@ -542,17 +517,17 @@ export class InkGame {
       return;
     }
 
-    const reachableNodeIndices = reachableStageNodeIndices(actor.pos);
+    const reachableNodeIndices = reachableStageNodeIndices(this.stageDefinition, actor.pos);
     if (reachableNodeIndices.length === 0) {
       actor.behavior = "paint";
-      actor.targetNode = actor.team === 0 ? 2 : 6;
+      actor.targetNode = this.stageDefinition.ruleAnchors.fallbackPaintNodeByTeam[actor.team];
       return;
     }
 
-    let bestNode = actor.team === 0 ? 2 : 6;
+    let bestNode = this.stageDefinition.ruleAnchors.fallbackPaintNodeByTeam[actor.team];
     let bestScore = -Infinity;
     for (const index of reachableNodeIndices) {
-      const node = stageNodes[index];
+      const node = this.stageDefinition.navigationNodes[index];
       const paintScore = -this.paintField.scoreAround(node.pos, 2.4, actor.team);
       const score = scoreBotNodeCandidate({
         actorPos: actor.pos,
@@ -569,14 +544,15 @@ export class InkGame {
     }
 
     actor.targetNode = bestNode;
-    actor.behavior = bestNode >= 3 && bestNode <= 5 ? "contest" : "paint";
+    const [contestStart, contestEnd] = this.stageDefinition.ruleAnchors.contestNodeRange;
+    actor.behavior = bestNode >= contestStart && bestNode <= contestEnd ? "contest" : "paint";
   }
 
   private closestNodeIndex(position: Vec2): number {
     let best = 0;
     let bestDistance = Infinity;
-    for (let index = 0; index < stageNodes.length; index += 1) {
-      const candidate = distance(position, stageNodes[index].pos);
+    for (let index = 0; index < this.stageDefinition.navigationNodes.length; index += 1) {
+      const candidate = distance(position, this.stageDefinition.navigationNodes[index].pos);
       if (candidate < bestDistance) {
         bestDistance = candidate;
         best = index;
@@ -585,33 +561,55 @@ export class InkGame {
     return best;
   }
 
+  private getActorWeapon(actor: ActorState) {
+    const loadout = getLoadoutDefinition(actor.loadoutId);
+    return getWeaponDefinition(loadout.mainWeaponId);
+  }
+
+  private getPlayerHudState(player: ActorState): {
+    inkFillWidth: string;
+    inkLabel: string;
+    stateLabel: string;
+    loadoutName: string;
+  } {
+    const loadout = getLoadoutDefinition(player.loadoutId);
+    return {
+      inkFillWidth: `${player.ink * 100}%`,
+      inkLabel: player.alive ? `${Math.round(player.ink * 100)}%` : "RESPAWN",
+      stateLabel: player.alive ? (player.squid ? "Squid Form" : "Human Form") : "Respawning",
+      loadoutName: loadout.displayName,
+    };
+  }
+
   private tryFire(actor: ActorState): void {
-    if (actor.shootCooldown > 0 || actor.ink < 0.055) {
+    const weapon = this.getActorWeapon(actor);
+    if (actor.shootCooldown > 0 || actor.ink < weapon.inkCost) {
       return;
     }
 
-    actor.shootCooldown = 0.12;
-    actor.ink = Math.max(0, actor.ink - 0.055);
+    actor.shootCooldown = weapon.cooldownMs / 1000;
+    actor.ink = Math.max(0, actor.ink - weapon.inkCost);
     const direction = actor.aim;
-    const range = traceLineDistance(actor.pos, direction, 8.8);
-    const steps = Math.max(3, Math.floor(range / 1.7));
+    const range = traceLineDistance(this.stageDefinition, actor.pos, direction, weapon.projectileProfile.maxRange);
+    const steps = Math.max(weapon.projectileProfile.minSteps, Math.floor(range / weapon.projectileProfile.stepDistance));
     for (let step = 1; step <= steps; step += 1) {
-      const travel = Math.min(range, step * 1.7);
-      const lateral = (Math.random() - 0.5) * 0.4;
+      const travel = Math.min(range, step * weapon.projectileProfile.stepDistance);
+      const lateral = (Math.random() - 0.5) * weapon.projectileProfile.lateralSpread;
       const point = {
         x: actor.pos.x + direction.x * travel - direction.y * lateral,
         y: actor.pos.y + direction.y * travel + direction.x * lateral,
       };
-      if (isBlocked(point, 0.2)) {
+      if (isBlocked(this.stageDefinition, point, weapon.projectileProfile.obstacleInflate)) {
         break;
       }
-      this.paintField.stampWorld(point, 0.72 - step * 0.06, actor.team);
+      const radius = Math.max(0.18, weapon.projectileProfile.trailPaintRadius - step * weapon.projectileProfile.trailPaintFalloff);
+      this.paintField.stampWorld(point, radius, actor.team);
     }
-    this.paintField.stampWorld(actor.pos, 0.26, actor.team);
+    this.paintField.stampWorld(actor.pos, weapon.projectileProfile.selfPaintRadius, actor.team);
 
     const target = this.findVisibleEnemy(actor, range + 0.4, 0.9);
     if (target && target.invulnTimer <= 0) {
-      target.hp -= 1;
+      target.hp -= weapon.damage;
       target.invulnTimer = 0.18;
       if (target.hp <= 0) {
         target.alive = false;
@@ -645,7 +643,7 @@ export class InkGame {
       if (facing < coneThreshold) {
         continue;
       }
-      const clearDistance = traceLineDistance(actor.pos, dir, dist + 0.1);
+      const clearDistance = traceLineDistance(this.stageDefinition, actor.pos, dir, dist + 0.1);
       if (clearDistance + 0.05 < dist) {
         continue;
       }
@@ -674,7 +672,7 @@ export class InkGame {
       const dir = normalize(offset);
       const alignment = dot(desired, dir);
       if (alignment > bestDot) {
-        const clearDistance = traceLineDistance(actor.pos, dir, dist + 0.1);
+        const clearDistance = traceLineDistance(this.stageDefinition, actor.pos, dir, dist + 0.1);
         if (clearDistance + 0.08 >= dist) {
           bestDot = alignment;
           bestAngle = vectorToAngle(dir);
@@ -698,9 +696,11 @@ export class InkGame {
     this.refs.scoreFill.style.width = `${coverage.ally}%`;
 
     const player = this.actors[0];
-    this.refs.inkFill.style.width = `${player.ink * 100}%`;
-    this.refs.inkValue.textContent = player.alive ? `${Math.round(player.ink * 100)}%` : "RESPAWN";
-    this.refs.stateChip.textContent = player.alive ? (player.squid ? "Squid Form" : "Human Form") : "Respawning";
+    const hudState = this.getPlayerHudState(player);
+    this.refs.inkFill.style.width = hudState.inkFillWidth;
+    this.refs.inkValue.textContent = hudState.inkLabel;
+    this.refs.stateChip.textContent = hudState.stateLabel;
+    this.refs.stateChip.title = hudState.loadoutName;
     this.refs.stateChip.classList.toggle("squid", player.squid);
     this.refs.pauseButton.style.display = this.mode === "playing" || this.mode === "paused" ? "" : "none";
   }
@@ -763,7 +763,7 @@ export class InkGame {
         <div class="brand-mark">${winner}</div>
       </div>
       <h2 class="headline">${coverage.ally.toFixed(1)}% vs ${coverage.enemy.toFixed(1)}%</h2>
-      <p class="result-copy">The result is based entirely on painted ground ownership when the 180 second timer ends.</p>
+      <p class="result-copy">The result is based entirely on painted ground ownership when the ${this.matchRuleDefinition.durationSeconds} second timer ends.</p>
       <div class="launch-row">
         <button class="action-btn" data-action="restart">Play Again</button>
         <button class="quiet-btn" data-action="toggle-audio">${this.muted ? "Unmute SFX" : "Mute SFX"}</button>

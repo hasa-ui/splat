@@ -1,6 +1,6 @@
 import { distance } from "./math";
+import type { StageNode } from "./definitions";
 import type { TeamId, Vec2 } from "./types";
-import type { StageNode } from "./stage";
 
 interface ScoreBotNodeCandidateParams {
   actorPos: Vec2;

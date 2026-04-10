@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_STAGE_ID, getStageDefinition } from "../src/game/definitions";
 import { scoreBotNodeCandidate } from "../src/game/botGoal";
-import { stageNodes } from "../src/game/stage";
 
 describe("scoreBotNodeCandidate", () => {
+  const stage = getStageDefinition(DEFAULT_STAGE_ID);
+
   it("penalizes lingering on a settled contest node when another path is available", () => {
-    const actorPos = stageNodes[5].pos;
+    const actorPos = stage.navigationNodes[5].pos;
     const stayScore = scoreBotNodeCandidate({
       actorPos,
       candidateIndex: 5,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[5],
+      node: stage.navigationNodes[5],
       paintScore: 0,
     });
     const moveScore = scoreBotNodeCandidate({
@@ -18,7 +20,7 @@ describe("scoreBotNodeCandidate", () => {
       candidateIndex: 7,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[7],
+      node: stage.navigationNodes[7],
       paintScore: 0,
     });
 
@@ -26,13 +28,13 @@ describe("scoreBotNodeCandidate", () => {
   });
 
   it("keeps a contest node attractive while it still needs repainting", () => {
-    const actorPos = stageNodes[5].pos;
+    const actorPos = stage.navigationNodes[5].pos;
     const stayScore = scoreBotNodeCandidate({
       actorPos,
       candidateIndex: 5,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[5],
+      node: stage.navigationNodes[5],
       paintScore: 3.5,
     });
     const moveScore = scoreBotNodeCandidate({
@@ -40,7 +42,7 @@ describe("scoreBotNodeCandidate", () => {
       candidateIndex: 7,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[7],
+      node: stage.navigationNodes[7],
       paintScore: 0,
     });
 
@@ -54,7 +56,7 @@ describe("scoreBotNodeCandidate", () => {
       candidateIndex: 5,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[5],
+      node: stage.navigationNodes[5],
       paintScore: 0,
     });
     const continueScore = scoreBotNodeCandidate({
@@ -62,7 +64,7 @@ describe("scoreBotNodeCandidate", () => {
       candidateIndex: 7,
       reachableNodeCount: 2,
       team: 0,
-      node: stageNodes[7],
+      node: stage.navigationNodes[7],
       paintScore: 0,
     });
 

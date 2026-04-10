@@ -13,6 +13,7 @@ export interface ActorState {
   team: TeamId;
   isPlayer: boolean;
   spawnSlot: number;
+  loadoutId: string;
   pos: Vec2;
   vel: Vec2;
   aim: Vec2;

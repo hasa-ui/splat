@@ -1,64 +1,15 @@
 import { clamp, normalize } from "./math";
-import type { TeamId, Vec2 } from "./types";
+import type { StageDefinition } from "./definitions";
+import type { Vec2 } from "./types";
 
-export interface StageObstacle {
-  id: string;
-  pos: Vec2;
-  half: Vec2;
-  height: number;
-  color: string;
-}
-
-export interface StageNode {
-  pos: Vec2;
-  bias: [number, number];
-}
-
-export const STAGE_WIDTH = 42;
-export const STAGE_HEIGHT = 28;
 export const ACTOR_RADIUS = 0.72;
 
-export const obstacles: StageObstacle[] = [
-  { id: "center-block", pos: { x: 0, y: 0 }, half: { x: 2.4, y: 1.2 }, height: 2.2, color: "#25333a" },
-  { id: "center-top", pos: { x: 0, y: -5.8 }, half: { x: 1.4, y: 1.1 }, height: 1.5, color: "#2d4048" },
-  { id: "center-bottom", pos: { x: 0, y: 5.8 }, half: { x: 1.4, y: 1.1 }, height: 1.5, color: "#2d4048" },
-  { id: "left-wing", pos: { x: -8.8, y: -1.6 }, half: { x: 1.9, y: 2.2 }, height: 1.9, color: "#1f2a30" },
-  { id: "right-wing", pos: { x: 8.8, y: 1.6 }, half: { x: 1.9, y: 2.2 }, height: 1.9, color: "#1f2a30" },
-  { id: "left-pocket", pos: { x: -14.2, y: 7.2 }, half: { x: 2.2, y: 1.4 }, height: 1.2, color: "#31434d" },
-  { id: "right-pocket", pos: { x: 14.2, y: -7.2 }, half: { x: 2.2, y: 1.4 }, height: 1.2, color: "#31434d" },
-];
-
-export const stageNodes: StageNode[] = [
-  { pos: { x: -16, y: 0 }, bias: [1.0, 0.2] },
-  { pos: { x: -10, y: -8 }, bias: [1.0, 0.4] },
-  { pos: { x: -10, y: 8 }, bias: [1.0, 0.4] },
-  { pos: { x: -2.2, y: -4.4 }, bias: [0.9, 0.9] },
-  { pos: { x: -2.2, y: 4.4 }, bias: [0.9, 0.9] },
-  { pos: { x: 1.8, y: 3.2 }, bias: [0.8, 0.8] },
-  { pos: { x: 8.5, y: -8 }, bias: [0.4, 1.0] },
-  { pos: { x: 8.5, y: 8 }, bias: [0.4, 1.0] },
-  { pos: { x: 15.5, y: 0 }, bias: [0.2, 1.0] },
-];
-
-export const teamSpawns: Record<TeamId, Vec2[]> = {
-  0: [
-    { x: -17, y: -3.6 },
-    { x: -17.8, y: 0.5 },
-    { x: -17, y: 4.2 },
-  ],
-  1: [
-    { x: 17, y: 3.6 },
-    { x: 17.8, y: -0.5 },
-    { x: 17, y: -4.2 },
-  ],
-};
-
-export function resolveArenaMovement(position: Vec2, radius: number): Vec2 {
+export function resolveArenaMovement(stage: StageDefinition, position: Vec2, radius: number): Vec2 {
   let next = { ...position };
-  next.x = clamp(next.x, -STAGE_WIDTH * 0.5 + radius, STAGE_WIDTH * 0.5 - radius);
-  next.y = clamp(next.y, -STAGE_HEIGHT * 0.5 + radius, STAGE_HEIGHT * 0.5 - radius);
+  next.x = clamp(next.x, -stage.width * 0.5 + radius, stage.width * 0.5 - radius);
+  next.y = clamp(next.y, -stage.height * 0.5 + radius, stage.height * 0.5 - radius);
 
-  for (const obstacle of obstacles) {
+  for (const obstacle of stage.obstacles) {
     const dx = next.x - obstacle.pos.x;
     const dy = next.y - obstacle.pos.y;
     const overlapX = obstacle.half.x + radius - Math.abs(dx);
@@ -75,7 +26,7 @@ export function resolveArenaMovement(position: Vec2, radius: number): Vec2 {
   return next;
 }
 
-export function traceLineDistance(start: Vec2, direction: Vec2, maxDistance: number): number {
+export function traceLineDistance(stage: StageDefinition, start: Vec2, direction: Vec2, maxDistance: number): number {
   const dir = normalize(direction);
   const steps = Math.ceil(maxDistance / 0.35);
   let distance = maxDistance;
@@ -85,11 +36,11 @@ export function traceLineDistance(start: Vec2, direction: Vec2, maxDistance: num
       y: start.y + dir.y * i * 0.35,
     };
     if (
-      test.x <= -STAGE_WIDTH * 0.5 ||
-      test.x >= STAGE_WIDTH * 0.5 ||
-      test.y <= -STAGE_HEIGHT * 0.5 ||
-      test.y >= STAGE_HEIGHT * 0.5 ||
-      isBlocked(test, 0.15)
+      test.x <= -stage.width * 0.5 ||
+      test.x >= stage.width * 0.5 ||
+      test.y <= -stage.height * 0.5 ||
+      test.y >= stage.height * 0.5 ||
+      isBlocked(stage, test, 0.15)
     ) {
       distance = (i - 1) * 0.35;
       break;
@@ -98,7 +49,7 @@ export function traceLineDistance(start: Vec2, direction: Vec2, maxDistance: num
   return clamp(distance, 0.8, maxDistance);
 }
 
-export function hasDirectPath(start: Vec2, end: Vec2, inflate = ACTOR_RADIUS): boolean {
+export function hasDirectPath(stage: StageDefinition, start: Vec2, end: Vec2, inflate = ACTOR_RADIUS): boolean {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const distance = Math.hypot(dx, dy);
@@ -109,25 +60,25 @@ export function hasDirectPath(start: Vec2, end: Vec2, inflate = ACTOR_RADIUS): b
       x: start.x + dx * t,
       y: start.y + dy * t,
     };
-    if (isBlocked(point, inflate)) {
+    if (isBlocked(stage, point, inflate)) {
       return false;
     }
   }
   return true;
 }
 
-export function reachableStageNodeIndices(start: Vec2, inflate = ACTOR_RADIUS): number[] {
+export function reachableStageNodeIndices(stage: StageDefinition, start: Vec2, inflate = ACTOR_RADIUS): number[] {
   const reachable: number[] = [];
-  for (let index = 0; index < stageNodes.length; index += 1) {
-    if (hasDirectPath(start, stageNodes[index].pos, inflate)) {
+  for (let index = 0; index < stage.navigationNodes.length; index += 1) {
+    if (hasDirectPath(stage, start, stage.navigationNodes[index].pos, inflate)) {
       reachable.push(index);
     }
   }
   return reachable;
 }
 
-export function isBlocked(point: Vec2, inflate = 0): boolean {
-  for (const obstacle of obstacles) {
+export function isBlocked(stage: StageDefinition, point: Vec2, inflate = 0): boolean {
+  for (const obstacle of stage.obstacles) {
     if (
       Math.abs(point.x - obstacle.pos.x) <= obstacle.half.x + inflate &&
       Math.abs(point.y - obstacle.pos.y) <= obstacle.half.y + inflate
