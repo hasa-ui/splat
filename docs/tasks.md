@@ -4,15 +4,161 @@
 
 このタスクリストは、ロードマップを実装可能な作業単位に分解したものです。各タスクには、目的、想定される変更箇所、完了条件、検証方針を明記しています。
 
+## 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  classDef p2 fill:#d8f0fb,stroke:#026aa2,color:#123044,stroke-width:1.5px;
+
+  subgraph e1["Epic 1: データモデル"]
+    t11["Task 1.1"]
+    t12["Task 1.2"]
+    t13["Task 1.3"]
+  end
+
+  subgraph e2["Epic 2: 戦闘と武器"]
+    t21["Task 2.1"]
+    t22["Task 2.2"]
+    t23["Task 2.3"]
+  end
+
+  subgraph e3["Epic 3: サブ / スペシャルシステム"]
+    t31["Task 3.1"]
+    t32["Task 3.2"]
+    t33["Task 3.3"]
+    t34["Task 3.4"]
+  end
+
+  subgraph e4["Epic 4: 試合フローと UI"]
+    t41["Task 4.1"]
+    t42["Task 4.2"]
+    t43["Task 4.3"]
+  end
+
+  subgraph e5["Epic 5: ステージと塗りシステム"]
+    t51["Task 5.1"]
+    t52["Task 5.2"]
+    t53["Task 5.3"]
+  end
+
+  subgraph e6["Epic 6: ボット AI"]
+    t61["Task 6.1"]
+    t62["Task 6.2"]
+    t63["Task 6.3"]
+  end
+
+  subgraph e7["Epic 7: モバイル操作"]
+    t71["Task 7.1"]
+    t72["Task 7.2"]
+  end
+
+  subgraph e8["Epic 8: 音響とエフェクト"]
+    t81["Task 8.1"]
+    t82["Task 8.2"]
+  end
+
+  subgraph e9["Epic 9: QA と自動化"]
+    t91["Task 9.1"]
+    t92["Task 9.2"]
+    t93["Task 9.3"]
+  end
+
+  t11 --> t12
+  t11 --> t13
+  t11 --> t21
+  t11 --> t31
+  t11 --> t33
+  t11 --> t41
+  t11 --> t91
+
+  t12 --> t51
+  t12 --> t52
+  t12 --> t53
+
+  t13 --> t21
+  t13 --> t31
+  t13 --> t33
+  t13 --> t41
+  t13 --> t42
+  t13 --> t61
+
+  t21 --> t22
+  t21 --> t23
+  t21 --> t62
+  t21 --> t81
+  t21 --> t91
+
+  t22 --> t93
+  t23 --> t93
+
+  t31 --> t32
+  t31 --> t63
+  t31 --> t71
+
+  t32 --> t82
+  t32 --> t93
+
+  t33 --> t34
+  t33 --> t42
+  t33 --> t43
+  t33 --> t63
+  t33 --> t71
+  t33 --> t91
+
+  t34 --> t82
+  t34 --> t93
+
+  t41 --> t92
+  t41 --> t93
+  t42 --> t72
+  t42 --> t92
+  t43 --> t93
+
+  t52 --> t51
+
+  t61 --> t62
+  t62 --> t63
+  t62 --> t91
+  t63 --> t91
+
+  t71 --> t72
+  t72 --> t92
+
+  class t11,t12,t13,t21,t31,t33,t41,t42,t52,t61,t71 p0
+  class t22,t23,t32,t34,t51,t53,t62,t63,t72,t91,t92,t93 p1
+  class t43,t81,t82 p2
+```
+
+- 矢印は「依存先 -> 依存元」を表し、直接依存のみを描画する。
+- `P0`: 基盤または後続作業のブロッカー。
+- `P1`: 主要機能。
+- `P2`: 品質・演出・後段改善。
+
 ## 表記ルール
 
 - 優先度は `P0`、`P1`、`P2` の 3 段階で表記する。
 - `P0` は基盤または後続作業のブロッカー、`P1` は主要機能、`P2` は品質・演出・後段改善を示す。
 - 依存関係は直接依存する Task ID のみを記載する。推移的依存は列挙しない。
+- Mermaid 図の矢印は「依存先 -> 依存元」を表す。
+- Mermaid 図のノード色は優先度を表し、`P0`、`P1`、`P2` の意味は本文と同一とする。
 - 依存関係がないタスクは `なし` と記載する。
 - 実行順の判断は文書順ではなく、依存関係を優先して行う。
 
 ## Epic 1: データモデル
+
+#### Epic 1 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  t11["Task 1.1"] --> t12["Task 1.2"]
+  t11 --> t13["Task 1.3"]
+  class t11,t12,t13 p0
+```
+
+- 外部依存: なし
 
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
@@ -59,6 +205,20 @@
 
 ## Epic 2: 戦闘と武器
 
+#### Epic 2 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t21["Task 2.1"] --> t22["Task 2.2"]
+  t21 --> t23["Task 2.3"]
+  class t21 p0
+  class t22,t23 p1
+```
+
+- 外部依存: `Task 2.1` は `Task 1.1` と `Task 1.3` に依存する。
+
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
 | Task 2.1 | P0 | 1.1, 1.3 |
@@ -100,6 +260,20 @@
   - チャージしきい値、フルチャージダメージ、キャンセル挙動のテスト
 
 ## Epic 3: サブ / スペシャルシステム
+
+#### Epic 3 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t31["Task 3.1"] --> t32["Task 3.2"]
+  t33["Task 3.3"] --> t34["Task 3.4"]
+  class t31,t33 p0
+  class t32,t34 p1
+```
+
+- 外部依存: `Task 3.1` と `Task 3.3` は `Task 1.1` と `Task 1.3` に依存する。
 
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
@@ -155,6 +329,21 @@
 
 ## Epic 4: 試合フローと UI
 
+#### Epic 4 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p2 fill:#d8f0fb,stroke:#026aa2,color:#123044,stroke-width:1.5px;
+  t41["Task 4.1"]
+  t42["Task 4.2"]
+  t43["Task 4.3"]
+  class t41,t42 p0
+  class t43 p2
+```
+
+- 外部依存: `Task 4.1` は `Task 1.1` と `Task 1.3`、`Task 4.2` は `Task 1.3` と `Task 3.3`、`Task 4.3` は `Task 3.3` に依存する。
+
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
 | Task 4.1 | P0 | 1.1, 1.3 |
@@ -195,6 +384,20 @@
   - UI スナップショットまたは DOM テスト、および統計集計ユニットテスト
 
 ## Epic 5: ステージと塗りシステム
+
+#### Epic 5 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t52["Task 5.2"] --> t51["Task 5.1"]
+  t53["Task 5.3"]
+  class t52 p0
+  class t51,t53 p1
+```
+
+- 外部依存: `Task 5.1`、`Task 5.2`、`Task 5.3` はすべて `Task 1.2` に依存し、`Task 5.1` は加えて `Task 5.2` に依存する。
 
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
@@ -237,6 +440,20 @@
 
 ## Epic 6: ボット AI
 
+#### Epic 6 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t61["Task 6.1"] --> t62["Task 6.2"]
+  t62 --> t63["Task 6.3"]
+  class t61 p0
+  class t62,t63 p1
+```
+
+- 外部依存: `Task 6.1` は `Task 1.3`、`Task 6.2` は `Task 2.1`、`Task 6.3` は `Task 3.1` と `Task 3.3` に依存する。
+
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
 | Task 6.1 | P0 | 1.3 |
@@ -278,6 +495,19 @@
 
 ## Epic 7: モバイル操作
 
+#### Epic 7 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p0 fill:#fde2e1,stroke:#b42318,color:#5c1111,stroke-width:1.5px;
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t71["Task 7.1"] --> t72["Task 7.2"]
+  class t71 p0
+  class t72 p1
+```
+
+- 外部依存: `Task 7.1` は `Task 3.1` と `Task 3.3`、`Task 7.2` は `Task 4.2` に依存する。
+
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
 | Task 7.1 | P0 | 3.1, 3.3 |
@@ -307,6 +537,18 @@
 
 ## Epic 8: 音響とエフェクト
 
+#### Epic 8 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p2 fill:#d8f0fb,stroke:#026aa2,color:#123044,stroke-width:1.5px;
+  t81["Task 8.1"]
+  t82["Task 8.2"]
+  class t81,t82 p2
+```
+
+- 外部依存: `Task 8.1` は `Task 2.1`、`Task 8.2` は `Task 3.2` と `Task 3.4` に依存する。
+
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
 | Task 8.1 | P2 | 2.1 |
@@ -335,6 +577,19 @@
   - 手動確認とランタイムのスモークテスト
 
 ## Epic 9: QA と自動化
+
+#### Epic 9 依存関係図
+
+```mermaid
+flowchart LR
+  classDef p1 fill:#fff0c2,stroke:#b54708,color:#663c00,stroke-width:1.5px;
+  t91["Task 9.1"]
+  t92["Task 9.2"]
+  t93["Task 9.3"]
+  class t91,t92,t93 p1
+```
+
+- 外部依存: `Task 9.1` は `Task 1.1`、`Task 2.1`、`Task 3.3`、`Task 6.2`、`Task 6.3`、`Task 9.2` は `Task 4.1`、`Task 4.2`、`Task 7.2`、`Task 9.3` は `Task 2.2`、`Task 2.3`、`Task 3.2`、`Task 3.4`、`Task 4.1`、`Task 4.3` に依存する。
 
 | Task | 優先度 | 依存関係 |
 | --- | --- | --- |
