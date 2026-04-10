@@ -1,131 +1,131 @@
-# Inkline Arena Specification
+# Inkline Arena 仕様書
 
-## 1. Product Summary
+## 1. 製品概要
 
-`Inkline Arena` is an offline, browser-based, mobile-friendly 3D ink battle game inspired by the player fantasy and match loop of Splatoon, while keeping its own original presentation and a browser-realistic implementation scope.
+`Inkline Arena` は、Splatoon が持つプレイヤーファンタジーと試合ループに着想を得つつ、独自の表現とブラウザで現実的に実装可能な範囲を維持する、オフライン専用・ブラウザベース・モバイルフレンドリーな 3D インクバトルゲームです。
 
-The current game is a compact prototype. This specification preserves the current playable loop and defines the next target state for a richer offline turf-battle game that feels more recognizably like a modern ink action game.
+現在のゲームはコンパクトなプロトタイプです。この仕様書は、すでに遊べるループを保持しながら、より現代的なインクアクションゲームとして認識しやすい、より豊かなオフラインのナワバリバトル体験へ進めるための目標状態を定義します。
 
-Core product goals:
+製品の中核目標:
 
-- Preserve `offline-only`, `WebGL browser`, and `mobile landscape-first` constraints.
-- Keep the game readable and responsive on mid-range phones and desktop browsers.
-- Move closer to the desired loop through more weapons, sub/special systems, stronger squid movement, better stages, richer AI, and better match presentation.
-- Avoid direct reuse of copyrighted names, visuals, maps, sounds, or branding from existing IP.
+- `offline-only`、`WebGL browser`、`mobile landscape-first` の制約を維持する。
+- ミドルレンジのスマートフォンとデスクトップブラウザ上で、可読性と応答性を保つ。
+- 武器、サブ / スペシャル、より強い squid 移動、より良いステージ、より豊かな AI、より良い試合演出によって、望ましいループへ近づける。
+- 既存 IP の著作権対象となる名称、ビジュアル、マップ、音、ブランディングの直接流用は避ける。
 
-## 2. Current Implemented Specification
+## 2. 現在実装済みの仕様
 
-### 2.1 Match Structure
+### 2.1 試合構造
 
-- Rule: single offline turf battle.
-- Teams: `player + 2 ally bots` versus `3 enemy bots`.
-- Match length: `180 seconds`.
-- Start flow: title -> countdown -> playing -> results.
-- Pause flow: pause and resume are available during play.
-- Win condition: painted ground ownership percentage at timer end.
+- ルール: 単一のオフラインナワバリバトル。
+- チーム構成: `player + 2 ally bots` 対 `3 enemy bots`。
+- 試合時間: `180 seconds`。
+- 開始フロー: title -> countdown -> playing -> results。
+- 一時停止フロー: プレイ中に pause / resume が可能。
+- 勝敗条件: タイマー終了時点の地面塗り割合。
 
-### 2.2 Player State
+### 2.2 プレイヤー状態
 
-- One controllable avatar.
-- Two forms:
-  - Human form: move, shoot, paint.
-  - Squid form: faster movement, no shooting, ink recovery on friendly paint.
-- Health model: `4 hits` to splat.
-- Respawn: `3 seconds`.
-- Post-respawn invulnerability: short grace period.
+- 操作可能なアバターは 1 体。
+- 形態は 2 種類:
+  - Human form: 移動、射撃、塗りが可能。
+  - Squid form: より高速に移動でき、射撃できず、味方インク上でインクが回復する。
+- 体力モデル: `4 hits` で splat。
+- リスポーン時間: `3 seconds`。
+- リスポーン直後には短い無敵時間がある。
 
-### 2.3 Weapons and Combat
+### 2.3 武器と戦闘
 
-- One mid-range shooter only.
-- Fire cadence, ink cost, hit detection, and circular paint stamps are already implemented.
-- No sub weapon.
-- No special weapon.
-- No weapon selection or loadout screen.
+- 中距離シューター 1 種のみ。
+- 連射速度、インク消費、当たり判定、円形の塗りスタンプはすでに実装済み。
+- サブウェポンなし。
+- スペシャルウェポンなし。
+- 武器選択やロードアウト画面なし。
 
-### 2.4 Stage and Paint
+### 2.4 ステージと塗り
 
-- One arena only.
-- Central obstacles, side approach lanes, and simple height variation.
-- Paint applies to the floor-space simulation only.
-- Score comes from the paint field percentages.
-- Vertical wall painting and wall traversal are not supported.
+- アリーナは 1 つのみ。
+- 中央障害物、側面の進入レーン、簡単な高低差を備える。
+- 塗りは床面シミュレーションに対してのみ適用される。
+- スコアは塗りフィールドの割合で決まる。
+- 垂直壁への塗りや壁移動は未対応。
 
 ### 2.5 AI
 
-- Bots use node-based goal selection and direct path checks.
-- Behaviors: `paint`, `contest`, `chase`, `retreat`, `respawn`.
-- Bots can paint, chase nearby enemies, retreat to recover, and respawn.
-- Bots do not have explicit combat roles, loadouts, or special ability logic.
+- ボットはノードベースの目標選択と直接経路判定を用いる。
+- 行動は `paint`、`contest`、`chase`、`retreat`、`respawn`。
+- ボットは塗り、近くの敵の追跡、回復のための退避、リスポーンができる。
+- 明確な戦闘ロール、ロードアウト、スペシャルのロジックはまだない。
 
-### 2.6 Controls and UI
+### 2.6 操作と UI
 
-- Mobile: dual virtual sticks + `SQUID` button + pause button.
-- Desktop: keyboard + mouse support.
-- HUD: timer, paint control bar, ink reserve, player state chip.
-- Center overlay: title, countdown, pause, results.
-- Portrait on coarse-pointer devices shows a rotate note.
+- モバイル: デュアル仮想スティック + `SQUID` ボタン + pause ボタン。
+- デスクトップ: キーボード + マウス操作に対応。
+- HUD: タイマー、塗り支配バー、インク残量、プレイヤー状態チップ。
+- センターオーバーレイ: title、countdown、pause、results。
+- 粗いポインタデバイスの縦持ち時には rotate note を表示する。
 
-## 3. Target Product Specification
+## 3. 目標製品仕様
 
-### 3.1 Design Principles
+### 3.1 設計原則
 
-- The product remains offline and bot-driven.
-- New systems must improve the moment-to-moment turf-war fantasy before adding breadth.
-- Every added feature must justify its performance cost on mobile browsers.
-- “Closer to Splatoon” means closer loop and role feel, not direct replication.
+- 製品は引き続きオフラインかつボット駆動である。
+- 新しいシステムは、幅を増やす前に、瞬間瞬間のナワバリバトル体験を改善しなければならない。
+- 追加機能はすべて、モバイルブラウザ上での性能コストを正当化できなければならない。
+- 「Splatoon に近づける」とは、ループと役割感を近づけることであり、直接複製することではない。
 
-### 3.2 Match Rules and Modes
+### 3.2 試合ルールとモード
 
-### Required Rule Set
+### 必須ルールセット
 
-- Primary rule remains `Turf Battle`.
-- Turf Battle remains the default and first-class mode for all roadmap phases.
-- Turf Battle uses:
-  - `3v3` offline format.
-  - `180-second` timer by default.
-  - final score by paint coverage.
+- 主ルールは引き続き `Turf Battle`。
+- Turf Battle は、すべてのロードマップフェーズにおいてデフォルトかつ最優先のモードであり続ける。
+- Turf Battle の仕様:
+  - `3v3` のオフライン形式
+  - デフォルトで `180-second` タイマー
+  - 最終スコアは塗り面積率で決定
 
-### Deferred Rule Set
+### 後回しにするルールセット
 
-- A secondary control-point rule, described as `Area Control`, may be designed in the spec as a later expansion target.
-- It is not part of the initial implementation roadmap and should not block the Turf Battle roadmap.
+- `Area Control` と表現する二次的な制圧ルールは、将来拡張の仕様として設計してよい。
+- ただし初期実装ロードマップには含めず、Turf Battle の進行を妨げてはならない。
 
-### 3.3 Weapons
+### 3.3 武器
 
-The target game supports three weapon families. Each family ships with one baseline loadout before variations are added.
+目標となるゲームでは、3 つの武器ファミリーをサポートする。バリエーション追加前に、各ファミリーへ 1 つの基本ロードアウトを用意する。
 
-### Shooter Family
+### Shooter ファミリー
 
-- Role: balanced frontline painter and duelist.
-- Fire pattern: sustained automatic shots.
-- Strengths: reliable painting, flexible combat, easy to learn.
-- Weaknesses: lower burst damage and lower reach than specialist weapons.
+- 役割: バランスの取れた前衛塗り役兼デュエリスト。
+- 発射パターン: 継続的な自動射撃。
+- 強み: 安定した塗り、柔軟な戦闘、習得しやすさ。
+- 弱み: 特化武器より瞬間火力と射程が低い。
 
-### Roller Family
+### Roller ファミリー
 
-- Role: close-range area control and lane pressure.
-- Paint pattern:
-  - rolling paint while moving on ground.
-  - short-range flick attack for burst painting and damage.
-- Strengths: wide paint output, strong ambushes, easy area denial.
-- Weaknesses: short reach, commitment during engagement.
+- 役割: 近距離のエリア制圧とレーン圧力。
+- 塗りパターン:
+  - 地上移動中の rolling paint
+  - 短射程の flick attack による瞬間的な塗りとダメージ
+- 強み: 広い塗り性能、強い奇襲性能、分かりやすいエリア拒否。
+- 弱み: 射程が短く、交戦中のコミットが重い。
 
-### Charger Family
+### Charger ファミリー
 
-- Role: long-range threat and precision picks.
-- Fire pattern: hold-to-charge, then release.
-- Strengths: long reach, high damage, lane control.
-- Weaknesses: slower paint output, slower handling, higher execution demand.
+- 役割: 長射程から圧をかけ、精密にキルを取る。
+- 発射パターン: hold-to-charge して release。
+- 強み: 長射程、高火力、レーン制御。
+- 弱み: 塗り性能が低めで、操作が重く、扱いの難度が高い。
 
-### Weapon Definition Requirements
+### 武器定義の要件
 
-Each weapon family must be spec’d using a common data model with:
+各武器ファミリーは、分岐ロジックではなく共通データモデルで仕様化する。必要項目:
 
 - `id`
 - `displayName`
 - `family`
 - `inkCost`
-- `fireInterval` or `chargeWindow`
+- `fireInterval` または `chargeWindow`
 - `baseDamage`
 - `paintProfile`
 - `effectiveRange`
@@ -133,91 +133,91 @@ Each weapon family must be spec’d using a common data model with:
 - `subWeaponId`
 - `specialId`
 
-### 3.4 Sub Weapons
+### 3.4 サブウェポン
 
-Each baseline loadout has one sub weapon. Sub weapons are intentionally simple and browser-friendly.
+各基本ロードアウトには 1 つのサブウェポンを持たせる。サブウェポンは意図的にシンプルで、ブラウザ向けに実装しやすいものとする。
 
-Required initial sub weapon set:
+初期に必要なサブウェポンセット:
 
-- `Burst Bomb` equivalent:
-  - quick throw
-  - small explosion
-  - good poke and repaint tool
-- `Ink Mine` equivalent:
-  - placeable trap
-  - delayed trigger on enemy proximity
-  - defensive lane control
-- `Line Marker` equivalent:
-  - fast straight projectile
-  - light damage
-  - reveals enemy briefly and paints lightly
+- `Burst Bomb` 相当:
+  - 素早い投擲
+  - 小さな爆発
+  - 牽制と塗り直しに向く
+- `Ink Mine` 相当:
+  - 設置型トラップ
+  - 敵接近時に遅延発動
+  - 防衛的なレーン制御
+- `Line Marker` 相当:
+  - 高速な直線弾
+  - 軽いダメージ
+  - 敵を短時間可視化し、軽く塗る
 
-Sub weapon rules:
+サブウェポンのルール:
 
-- Sub weapons consume ink.
-- Sub weapons share no cooldown with main weapon unless explicitly defined by loadout.
-- Only one sub weapon is active per loadout.
+- サブウェポンはインクを消費する。
+- 明示的にロードアウトで定義しない限り、メイン武器とクールダウンを共有しない。
+- 1 ロードアウトにつき有効なサブウェポンは 1 つ。
 
-### 3.5 Special Weapons
+### 3.5 スペシャルウェポン
 
-Each baseline loadout has one special weapon that fills from painting and contribution.
+各基本ロードアウトには、塗りと貢献で溜まる 1 つのスペシャルウェポンを持たせる。
 
-Required initial special set:
+初期に必要なスペシャルセット:
 
-- `Wave Pulse` equivalent:
-  - emits expanding pulses
-  - reveals enemies
-  - minor damage or pressure
-- `Ink Storm` equivalent:
-  - targeted area denial
-  - sustained repainting over time
-- `Zip/Strike alternative` is excluded for the first target state because traversal-heavy specials are expensive and require bigger movement-system changes.
+- `Wave Pulse` 相当:
+  - 拡大する pulse を放つ
+  - 敵を可視化する
+  - 軽いダメージまたは圧力を与える
+- `Ink Storm` 相当:
+  - 指定範囲のエリア拒否
+  - 時間経過で継続的に塗り直す
+- `Zip/Strike alternative` は、移動依存のスペシャルはコストが高く、移動システムの大きな変更を要するため、初期目標状態から除外する。
 
-Special rules:
+スペシャルのルール:
 
-- Special gauge fills from painting ground and minor combat contribution.
-- Gauge resets or partially resets after use.
-- Special activation temporarily overrides normal fire input.
-- Bots must understand when to save or deploy a special.
+- スペシャルゲージは地面塗りと小規模な戦闘貢献で蓄積する。
+- 使用後、ゲージはリセットまたは部分リセットされる。
+- スペシャル発動中は通常の射撃入力を一時的に上書きする。
+- ボットはスペシャルを温存すべき場面と使うべき場面を理解する必要がある。
 
-### 3.6 Player Movement and Ink Interaction
+### 3.6 プレイヤー移動とインク相互作用
 
-### Required Movement Behavior
+### 必須の移動挙動
 
-- Human form and squid form remain the two primary states.
-- Friendly paint must provide:
-  - faster squid movement
-  - steady ink recovery
-  - lower visibility through silhouette reduction or simplified visual cue
-- Enemy paint must provide:
-  - movement penalty
-  - pressure against staying exposed
-- Squid form remains unable to fire.
+- Human form と squid form を引き続き主要な 2 状態とする。
+- 味方インクは次の効果を持つ:
+  - squid 移動速度の上昇
+  - 安定したインク回復
+  - シルエット縮小または簡易的な視覚表現による低視認性
+- 敵インクは次の効果を持つ:
+  - 移動ペナルティ
+  - 露出し続けることへの圧力
+- Squid form では射撃できない。
 
-### Explicit Non-Goal
+### 明示的な非目標
 
-- Full wall-paint traversal is not part of this specification’s initial target state.
-- Wall surfaces may be paintable later only if a simpler representation is introduced, but wall-swim traversal is out of scope for the planned roadmap.
+- 完全な壁塗り移動は、この仕様の初期目標状態には含めない。
+- 将来的に単純な表現が導入されるなら壁を塗れる余地はあるが、wall-swim traversal は計画されたロードマップの範囲外とする。
 
-### 3.7 Stages
+### 3.7 ステージ
 
-### Target Stage Count
+### 目標ステージ数
 
-- Expand from `1` stage to `3` stages.
+- `1` ステージから `3` ステージへ拡張する。
 
-### Stage Design Requirements
+### ステージ設計要件
 
-Each stage must include:
+各ステージには以下を含める:
 
-- one clearly contestable center area
-- at least two flank routes
-- readable cover and elevation
-- distinct paint-routing decisions
-- safe bot navigation nodes and reachable combat lanes
+- 明確に奪い合いになる中央エリアを 1 つ
+- 少なくとも 2 つの側面ルート
+- 読みやすい遮蔽物と高低差
+- 塗り進行の判断差が出る経路設計
+- 安全なボット用ナビゲーションノードと到達可能な戦闘レーン
 
-### Stage Definition Requirements
+### ステージ定義の要件
 
-Each stage must define:
+各ステージは以下を定義する:
 
 - `id`
 - `displayName`
@@ -228,107 +228,107 @@ Each stage must define:
 - `combatLanes`
 - `specialTargetZones`
 
-### 3.8 Bots and Roles
+### 3.8 ボットと役割
 
-Bots move from generic behavior toward role-driven behavior.
+ボットは generic な挙動から、役割駆動の挙動へ移行する。
 
-Required bot roles:
+必要なボットロール:
 
 - `Painter`
-  - prioritizes map coverage
-  - avoids overcommitting to duels
+  - マップ塗りを優先する
+  - デュエルへの過剰なコミットを避ける
 - `Skirmisher`
-  - contests center and pressures enemies
-  - uses subs aggressively
+  - 中央を争い、敵へ圧力をかける
+  - サブを積極的に使う
 - `Anchor`
-  - holds safe lines
-  - uses long range or defensive specials
+  - 安全なラインを維持する
+  - 長射程または防衛的スペシャルを使う
 
-Bot logic requirements:
+ボットロジックの要件:
 
-- choose goals from stage and rule context
-- switch between paint, chase, retreat, support, and special-use decisions
-- respect weapon family range and mobility differences
-- avoid obvious dead-end pathing
-- use sub and special timing heuristics
+- ステージとルール文脈から目標を選ぶ
+- paint、chase、retreat、support、special-use の各判断を切り替える
+- 武器ファミリーごとの射程と機動差を尊重する
+- 明らかな行き止まり経路を避ける
+- サブとスペシャルの使用タイミングにヒューリスティクスを持つ
 
-### 3.9 Match Flow, UI, and Presentation
+### 3.9 試合フロー、UI、演出
 
-### Match Flow
+### 試合フロー
 
-- Add a pre-match loadout selection screen.
-- Keep countdown, pause, and results screens.
-- Expand results screen to show:
-  - coverage percent
+- 試合前のロードアウト選択画面を追加する。
+- countdown、pause、results の画面は維持する。
+- リザルト画面を拡張し、以下を表示する:
+  - 塗り割合
   - splats / splatted count
-  - main contribution summary
-  - special usage count
+  - 主な貢献内容の要約
+  - スペシャル使用回数
 
-### HUD Targets
+### HUD の目標
 
-HUD must grow to support:
+HUD は次を支えられるよう拡張する必要がある:
 
-- main ink reserve
-- special gauge
-- current weapon/loadout identity
-- timer
-- turf control summary
-- player state
+- メインのインク残量
+- スペシャルゲージ
+- 現在の武器 / ロードアウト識別
+- タイマー
+- ナワバリ支配の要約
+- プレイヤー状態
 
-### Tutorial / Onboarding
+### チュートリアル / オンボーディング
 
-- Add a short playable onboarding or guided training flow.
-- Teach movement, squid recovery, painting, sub use, and special activation.
+- 短時間で遊べる導入、またはガイド付きトレーニングフローを追加する。
+- 移動、squid 回復、塗り、サブ使用、スペシャル発動を教える。
 
-### 3.10 Progression and Persistence
+### 3.10 進行要素と永続化
 
-Persistence remains lightweight and offline.
+永続化は軽量でオフラインのままとする。
 
-Initial progression target:
+初期の進行要素目標:
 
-- local unlock tracking only
-- no account system
-- no online profile
+- ローカルのアンロック管理のみ
+- アカウントシステムなし
+- オンラインプロフィールなし
 
-Allowed uses:
+許可される用途:
 
-- unlock additional loadouts
-- unlock additional stages or challenge presets
-- store settings and last-selected loadout
+- 追加ロードアウトのアンロック
+- 追加ステージまたはチャレンジプリセットのアンロック
+- 設定値と前回選択ロードアウトの保存
 
-### 3.11 Audio and Effects
+### 3.11 音響とエフェクト
 
-Target additions:
+目標となる追加項目:
 
-- weapon-family-specific fire SFX
-- sub and special activation cues
-- clearer splat and respawn feedback
-- stronger paint-impact feedback
+- 武器ファミリーごとに異なる発射 SFX
+- サブ / スペシャル発動時の合図
+- より明確な splat / respawn フィードバック
+- より強い塗りインパクトのフィードバック
 
-Constraints:
+制約:
 
-- use compact local assets only
-- no streaming dependencies
+- コンパクトなローカルアセットのみを使う
+- ストリーミング依存を持たない
 
-### 3.12 Technical Constraints
+### 3.12 技術的制約
 
-- Platform: browser-only, WebGL-capable browsers.
-- Network: none at runtime.
-- Performance target:
-  - stable gameplay on mid-range mobile browsers
-  - main eager JS budget remains below existing enforced threshold unless consciously revised
-- Rendering:
-  - maintain simple stylized presentation
-  - avoid systems that require heavy physics or complex shader pipelines
+- プラットフォーム: ブラウザ専用、WebGL 対応ブラウザ。
+- ネットワーク: 実行時には不要。
+- 性能目標:
+  - ミドルレンジのモバイルブラウザで安定したゲームプレイ
+  - メインの eager JS 予算は、意図的な見直しがない限り、現在の強制閾値を超えない
+- 描画:
+  - シンプルでスタイライズされた見た目を維持する
+  - 重い物理演算や複雑なシェーダーパイプラインを必要とする仕組みは避ける
 
-## 4. Data and Interface Specification
+## 4. データおよびインターフェース仕様
 
-The implementation roadmap assumes the following game-facing definitions.
+実装ロードマップは、以下のゲーム向け定義を前提とする。
 
 ### 4.1 `WeaponDefinition`
 
-- Purpose: describe all main-weapon family behaviors through data rather than branching logic.
-- Required fields:
+- 目的: 分岐ロジックではなくデータにより、すべてのメイン武器ファミリーの挙動を記述する。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `family`
@@ -344,8 +344,8 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.2 `SubWeaponDefinition`
 
-- Purpose: define throw/place/line utility actions.
-- Required fields:
+- 目的: 投擲 / 設置 / 直線補助アクションを定義する。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `inkCost`
@@ -356,8 +356,8 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.3 `SpecialDefinition`
 
-- Purpose: define charge-based high-impact abilities.
-- Required fields:
+- 目的: ゲージ消費型の高影響アビリティを定義する。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `gaugeCost`
@@ -367,8 +367,8 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.4 `LoadoutDefinition`
 
-- Purpose: combine main, sub, and special into a player-selectable package.
-- Required fields:
+- 目的: メイン、サブ、スペシャルを、プレイヤーが選択可能なひとつのパッケージへまとめる。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `mainWeaponId`
@@ -378,8 +378,8 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.5 `MatchRuleDefinition`
 
-- Purpose: encapsulate scoring and objective rules.
-- Required fields:
+- 目的: スコアリングと目標ルールをカプセル化する。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `durationSeconds`
@@ -389,8 +389,8 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.6 `StageDefinition`
 
-- Purpose: move map data out of hard-coded single-stage assumptions.
-- Required fields:
+- 目的: ハードコードされた単一ステージ前提からマップデータを切り離す。
+- 必須フィールド:
   - `id`
   - `displayName`
   - `width`
@@ -403,28 +403,28 @@ The implementation roadmap assumes the following game-facing definitions.
 
 ### 4.7 `BotRole`
 
-- Allowed values:
+- 許容値:
   - `painter`
   - `skirmisher`
   - `anchor`
 
-## 5. Acceptance Criteria
+## 5. 受け入れ条件
 
-The target specification is considered met when:
+以下を満たしたとき、この目標仕様は達成とみなす:
 
-- the game supports three distinct loadouts built from three main weapon families
-- every loadout has one sub and one special
-- at least three stages are playable in offline turf battle
-- bots can complete full matches on each stage without common pathing stalls
-- the player can choose a loadout before match start
-- the HUD shows ink and special gauge clearly on mobile landscape
-- local progression and settings persist without a network dependency
-- automated tests cover data definitions, rule scoring, bot decision selection, and layout regressions
+- ゲームが 3 つのメイン武器ファミリーから成る 3 種類の明確なロードアウトをサポートしている
+- すべてのロードアウトが 1 つのサブと 1 つのスペシャルを持つ
+- 少なくとも 3 つのステージで、オフラインの Turf Battle をプレイできる
+- 各ステージで、よくある経路停止なしにボットが試合を最後まで完走できる
+- プレイヤーが試合開始前にロードアウトを選べる
+- モバイル横画面で HUD がインクとスペシャルゲージを明確に表示する
+- ローカルの進行要素と設定が、ネットワーク依存なしに永続化される
+- 自動テストが、データ定義、ルールスコアリング、ボット判断選択、レイアウト回帰をカバーしている
 
-## 6. Non-Goals
+## 6. 非目標
 
-- online multiplayer
-- matchmaking
-- account systems
-- direct map, UI, audio, or naming reuse from Splatoon
-- full wall-swim traversal in the initial roadmap
+- オンラインマルチプレイ
+- マッチメイキング
+- アカウントシステム
+- Splatoon からのマップ、UI、音、名称の直接流用
+- 初期ロードマップ内での完全な wall-swim traversal
