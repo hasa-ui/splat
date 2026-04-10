@@ -7,6 +7,7 @@ Browser-based ink battle prototype built with `Vite`, `TypeScript`, and `Three.j
 - `docs/spec.md`: current and target product specification
 - `docs/roadmap.md`: phase-based implementation roadmap
 - `docs/tasks.md`: implementation-ready task list
+- `docs/completed.md`: completed epic/task details and verification history
 
 ## Local Development
 
