@@ -1,263 +1,263 @@
-# Inkline Arena Task List
+# Inkline Arena タスクリスト
 
-## Summary
+## 概要
 
-This task list breaks the roadmap into implementation-ready work items. Each task has a clear objective, likely touchpoints, completion criteria, and validation expectations.
+このタスクリストは、ロードマップを実装可能な作業単位に分解したものです。各タスクには、目的、想定される変更箇所、完了条件、検証方針を明記しています。
 
-## Epic 1: Data Model
+## Epic 1: データモデル
 
-### Task 1.1: Introduce game definition modules
+### Task 1.1: ゲーム定義モジュールを導入する
 
-- Purpose: replace hard-coded single-instance assumptions with reusable data definitions.
-- Change targets: game definitions layer, type definitions, game bootstrap wiring.
-- Done when:
-  - weapon, sub, special, rule, stage, and loadout definitions exist
-  - current gameplay uses those definitions instead of inline constants
-- Validation:
-  - unit tests for definition lookup and default selection
-  - existing match smoke tests still pass
+- 目的: ハードコードされた単一インスタンス前提を、再利用可能なデータ定義へ置き換える。
+- 変更対象: ゲーム定義レイヤー、型定義、ゲーム起動配線。
+- 完了条件:
+  - 武器、サブ、スペシャル、ルール、ステージ、ロードアウトの定義が存在する
+  - 現在のゲームプレイがインライン定数ではなくそれらの定義を使う
+- 検証:
+  - 定義の参照とデフォルト選択に関するユニットテスト
+  - 既存の試合スモークテストが通る
 
-### Task 1.2: Refactor current stage into `StageDefinition`
+### Task 1.2: 現在のステージを `StageDefinition` にリファクタリングする
 
-- Purpose: separate current map geometry and nodes from the main game loop.
-- Change targets: stage data, paint field initialization, spawn setup.
-- Done when:
-  - current stage can be loaded by id
-  - current bot navigation uses stage-provided nodes
-- Validation:
-  - stage tests for spawn validity, node reachability, and obstacle sanity
+- 目的: 現在のマップ形状とノード情報をメインのゲームループから切り離す。
+- 変更対象: ステージデータ、塗りフィールド初期化、スポーン設定。
+- 完了条件:
+  - 現在のステージを id 指定で読み込める
+  - 現在のボットナビゲーションがステージ提供のノードを使う
+- 検証:
+  - スポーン妥当性、ノード到達性、障害物の健全性に関するステージテスト
 
-### Task 1.3: Add `LoadoutDefinition` support to actor state
+### Task 1.3: アクター状態に `LoadoutDefinition` 対応を追加する
 
-- Purpose: make both player and bots loadout-driven.
-- Change targets: actor state, spawn/reset logic, HUD metadata.
-- Done when:
-  - actors carry loadout ids
-  - current shooter is represented as the default loadout
-- Validation:
-  - unit tests for actor reset and loadout assignment
+- 目的: プレイヤーとボットの両方をロードアウト駆動にする。
+- 変更対象: アクター状態、スポーン / リセットロジック、HUD メタデータ。
+- 完了条件:
+  - アクターがロードアウト id を保持する
+  - 現在のシューターがデフォルトロードアウトとして表現される
+- 検証:
+  - アクターのリセットとロードアウト割り当てに関するユニットテスト
 
-## Epic 2: Combat and Weapons
+## Epic 2: 戦闘と武器
 
-### Task 2.1: Generalize main-weapon firing logic
+### Task 2.1: メイン武器の発射ロジックを一般化する
 
-- Purpose: support multiple main weapon families with one combat interface.
-- Change targets: fire loop, damage logic, paint application.
-- Done when:
-  - shooter, roller, and charger families each execute through the shared weapon system
-- Validation:
-  - weapon-family tests for rate, paint pattern, and damage behavior
+- 目的: ひとつの戦闘インターフェースで複数のメイン武器ファミリーを扱えるようにする。
+- 変更対象: 発射ループ、ダメージロジック、塗り適用処理。
+- 完了条件:
+  - `Shooter`、`Roller`、`Charger` の各ファミリーが共通武器システムを通じて実行される
+- 検証:
+  - 連射速度、塗りパターン、ダメージ挙動に関する武器ファミリーテスト
 
-### Task 2.2: Implement roller baseline loadout
+### Task 2.2: Roller の基本ロードアウトを実装する
 
-- Purpose: add close-range wide paint coverage and flick attacks.
-- Change targets: movement-fire coupling, paint stamping, collision/damage rules.
-- Done when:
-  - rolling and flicking both work
-  - roller paints meaningfully differently from shooter
-- Validation:
-  - gameplay simulation tests for paint area and close-range damage
+- 目的: 近距離での広い塗りとフリック攻撃を追加する。
+- 変更対象: 移動と発射の連動、塗りスタンプ、衝突 / ダメージ判定。
+- 完了条件:
+  - ローリングとフリックの両方が機能する
+  - Roller が Shooter と明確に異なる塗り方をする
+- 検証:
+  - 塗り面積と近距離ダメージに関するゲームプレイシミュレーションテスト
 
-### Task 2.3: Implement charger baseline loadout
+### Task 2.3: Charger の基本ロードアウトを実装する
 
-- Purpose: add hold-to-charge long-range play.
-- Change targets: input handling, charge state, projectile resolution, HUD state.
-- Done when:
-  - charge shot timing and long-range impact are implemented
-- Validation:
-  - tests for charge threshold, full-charge damage, and cancellation behavior
+- 目的: 長射程の溜め撃ちプレイを追加する。
+- 変更対象: 入力処理、チャージ状態、弾の解決、HUD 状態。
+- 完了条件:
+  - チャージショットのタイミングと長距離への影響が実装される
+- 検証:
+  - チャージしきい値、フルチャージダメージ、キャンセル挙動のテスト
 
-## Epic 3: Sub and Special Systems
+## Epic 3: サブ / スペシャルシステム
 
-### Task 3.1: Add sub-weapon action pipeline
+### Task 3.1: サブウェポンのアクションパイプラインを追加する
 
-- Purpose: support ink-costed alternate actions alongside main fire.
-- Change targets: input model, actor action state, projectile/effect system.
-- Done when:
-  - sub weapons can be equipped and activated independently of main fire
-- Validation:
-  - tests for ink cost, cooldown, and spawn behavior
+- 目的: メイン射撃と並行する、インク消費型の代替アクションをサポートする。
+- 変更対象: 入力モデル、アクターのアクション状態、弾 / エフェクトシステム。
+- 完了条件:
+  - サブウェポンを装備し、メイン射撃とは独立して発動できる
+- 検証:
+  - インク消費、クールダウン、生成挙動に関するテスト
 
-### Task 3.2: Implement baseline sub weapons
+### Task 3.2: 基本サブウェポン群を実装する
 
-- Purpose: ship the initial utility kit.
-- Change targets: effect logic and paint/damage resolution.
-- Done when:
-  - burst-bomb, ink-mine, and line-marker equivalents all function
-- Validation:
-  - tests for trigger behavior, area effect, and friendly/enemy interaction
+- 目的: 初期ユーティリティキットを出荷可能にする。
+- 変更対象: エフェクトロジックと塗り / ダメージ解決。
+- 完了条件:
+  - `Burst Bomb`、`Ink Mine`、`Line Marker` 相当の機能がすべて動く
+- 検証:
+  - 発動条件、範囲効果、味方 / 敵との相互作用に関するテスト
 
-### Task 3.3: Add special gauge and activation flow
+### Task 3.3: スペシャルゲージと発動フローを追加する
 
-- Purpose: create the reward loop for painting and contribution.
-- Change targets: scoring hooks, HUD, action state machine.
-- Done when:
-  - gauge fills during play
-  - special activation and completion are supported
-- Validation:
-  - tests for gauge accumulation, spend/reset behavior, and blocked activation states
+- 目的: 塗りと貢献に対する報酬ループを作る。
+- 変更対象: スコアリングフック、HUD、アクション状態機械。
+- 完了条件:
+  - 試合中にゲージが溜まる
+  - スペシャルの発動と終了がサポートされる
+- 検証:
+  - ゲージ蓄積、消費 / リセット挙動、発動不可状態のテスト
 
-### Task 3.4: Implement initial special set
+### Task 3.4: 初期スペシャル群を実装する
 
-- Purpose: ship the first high-impact abilities.
-- Change targets: timed effects, targeting, AI awareness.
-- Done when:
-  - wave pulse and ink storm equivalents work end-to-end
-- Validation:
-  - tests for duration, area effect, reveal/damage behavior, and gauge drain
+- 目的: 影響力の高い最初のアビリティ群を出荷可能にする。
+- 変更対象: 時限エフェクト、ターゲティング、AI 認識。
+- 完了条件:
+  - `Wave Pulse` と `Ink Storm` 相当が end-to-end で動作する
+- 検証:
+  - 継続時間、範囲効果、可視化 / ダメージ挙動、ゲージ消費のテスト
 
-## Epic 4: Match Flow and UI
+## Epic 4: 試合フローと UI
 
-### Task 4.1: Build pre-match loadout selection
+### Task 4.1: 試合前のロードアウト選択を構築する
 
-- Purpose: let the player choose a role before the countdown.
-- Change targets: title flow, center-card UI, match boot sequence.
-- Done when:
-  - the player can choose among available loadouts before starting a match
-- Validation:
-  - DOM/UI tests for selection, confirmation, and default persistence
+- 目的: カウントダウン前にプレイヤーが役割を選べるようにする。
+- 変更対象: タイトルフロー、センターカード UI、試合開始シーケンス。
+- 完了条件:
+  - プレイヤーが試合開始前に利用可能なロードアウトを選択できる
+- 検証:
+  - 選択、確定、デフォルト保存に関する DOM / UI テスト
 
-### Task 4.2: Expand HUD for loadouts and specials
+### Task 4.2: ロードアウトとスペシャルに対応する HUD へ拡張する
 
-- Purpose: expose the new combat state clearly on mobile.
-- Change targets: HUD markup, styling, HUD render logic.
-- Done when:
-  - current loadout and special meter are visible and readable
-- Validation:
-  - layout tests at representative mobile landscape sizes
+- 目的: 新しい戦闘状態をモバイル上で明確に提示する。
+- 変更対象: HUD マークアップ、スタイル、HUD 描画ロジック。
+- 完了条件:
+  - 現在のロードアウトとスペシャルメーターが表示され、読みやすい
+- 検証:
+  - 代表的なモバイル横画面サイズでのレイアウトテスト
 
-### Task 4.3: Enrich results presentation
+### Task 4.3: リザルト表示を充実させる
 
-- Purpose: provide feedback beyond final paint ratio.
-- Change targets: results overlay, stat aggregation, copy.
-- Done when:
-  - results include paint percentage, splats, deaths, and special usage
-- Validation:
-  - UI snapshot or DOM tests plus stat aggregation unit tests
+- 目的: 最終的な塗り比率以外のフィードバックを提供する。
+- 変更対象: リザルトオーバーレイ、統計集計、文言。
+- 完了条件:
+  - リザルトに塗り割合、splats、deaths、スペシャル使用回数が含まれる
+- 検証:
+  - UI スナップショットまたは DOM テスト、および統計集計ユニットテスト
 
-## Epic 5: Stage and Paint System
+## Epic 5: ステージと塗りシステム
 
-### Task 5.1: Add stage selection and stage loading
+### Task 5.1: ステージ選択とステージ読み込みを追加する
 
-- Purpose: support multiple map definitions.
-- Change targets: boot flow, stage initialization, camera defaults.
-- Done when:
-  - at least three stage definitions are selectable and playable
-- Validation:
-  - tests for stage load success and spawn placement validity
+- 目的: 複数マップ定義を扱えるようにする。
+- 変更対象: 起動フロー、ステージ初期化、カメラ初期値。
+- 完了条件:
+  - 少なくとも 3 つのステージ定義が選択可能かつプレイ可能になる
+- 検証:
+  - ステージ読み込み成功とスポーン配置妥当性のテスト
 
-### Task 5.2: Extend paint-field support for varied stage layouts
+### Task 5.2: 多様なステージ構成に対応する塗りフィールドを拡張する
 
-- Purpose: allow map-specific paintable regions without breaking current scoring.
-- Change targets: paint field setup, stage metadata, score calculations.
-- Done when:
-  - each stage can define its own paintable footprint and scoring anchors
-- Validation:
-  - tests for paint coverage correctness on multiple stages
+- 目的: 現行スコアリングを壊さずに、マップ固有の塗れる領域を定義できるようにする。
+- 変更対象: 塗りフィールド設定、ステージメタデータ、スコア計算。
+- 完了条件:
+  - 各ステージが独自の塗り可能領域とスコア算出基準を定義できる
+- 検証:
+  - 複数ステージにおける塗り割合計算の正しさを確認するテスト
 
-### Task 5.3: Add special target zones and rule anchors
+### Task 5.3: スペシャル用ターゲットゾーンとルールアンカーを追加する
 
-- Purpose: give AI and future rules map-aware targets.
-- Change targets: stage metadata and bot/rule hooks.
-- Done when:
-  - stages expose anchor zones used by bots and optional future rules
-- Validation:
-  - unit tests for anchor lookup and availability
+- 目的: AI と将来ルールに対し、マップ依存の目標地点を与える。
+- 変更対象: ステージメタデータ、ボット / ルール用フック。
+- 完了条件:
+  - ステージが、ボットや将来ルールで使うアンカーゾーンを公開する
+- 検証:
+  - アンカー参照と利用可否に関するユニットテスト
 
-## Epic 6: Bot AI
+## Epic 6: ボット AI
 
-### Task 6.1: Add bot roles
+### Task 6.1: ボットの役割を追加する
 
-- Purpose: stop all bots from behaving like the same generic unit.
-- Change targets: actor state, goal scoring, loadout assignment.
-- Done when:
-  - painter, skirmisher, and anchor roles produce different priorities
-- Validation:
-  - tests for role-based goal scoring and target selection
+- 目的: すべてのボットが同じ generic unit のように振る舞う状態をやめる。
+- 変更対象: アクター状態、目標スコアリング、ロードアウト割り当て。
+- 完了条件:
+  - `painter`、`skirmisher`、`anchor` が異なる優先度を生む
+- 検証:
+  - 役割別の目標スコアリングとターゲット選択のテスト
 
-### Task 6.2: Make bots weapon-aware
+### Task 6.2: ボットを武器認識型にする
 
-- Purpose: align movement and engagement range with weapon family.
-- Change targets: chase distance, retreat logic, fire timing.
-- Done when:
-  - bots position differently for shooter, roller, and charger loadouts
-- Validation:
-  - simulation tests around distance-to-target decisions
+- 目的: 移動と交戦距離を武器ファミリーに合わせる。
+- 変更対象: 追跡距離、退避ロジック、発射タイミング。
+- 完了条件:
+  - `Shooter`、`Roller`、`Charger` のロードアウトでボットの位置取りが変わる
+- 検証:
+  - 対象との距離判断に関するシミュレーションテスト
 
-### Task 6.3: Add sub/special use heuristics
+### Task 6.3: サブ / スペシャル使用ヒューリスティクスを追加する
 
-- Purpose: make new tools visible in offline matches.
-- Change targets: bot think loop and ability dispatch rules.
-- Done when:
-  - bots can use subs and specials intentionally rather than randomly
-- Validation:
-  - tests for activation preconditions and cooldown/gauge behavior
+- 目的: 新しいツールがオフライン対戦でも見える形で使われるようにする。
+- 変更対象: ボット思考ループとアビリティ発動ルール。
+- 完了条件:
+  - ボットがランダムではなく意図を持ってサブとスペシャルを使える
+- 検証:
+  - 発動前提条件とクールダウン / ゲージ挙動のテスト
 
-## Epic 7: Mobile Controls
+## Epic 7: モバイル操作
 
-### Task 7.1: Expand input schema for sub and special
+### Task 7.1: サブとスペシャル用に入力スキーマを拡張する
 
-- Purpose: support the new combat surface on touch and desktop.
-- Change targets: input manager, HUD controls, desktop bindings.
-- Done when:
-  - main, sub, special, squid, and pause all coexist on mobile landscape
-- Validation:
-  - input tests and layout verification for collision-free controls
+- 目的: タッチ操作とデスクトップ操作の両方で、新しい戦闘入力面を支える。
+- 変更対象: 入力マネージャー、HUD コントロール、デスクトップ割り当て。
+- 完了条件:
+  - メイン、サブ、スペシャル、squid、pause がモバイル横画面で共存する
+- 検証:
+  - 入力テストと、操作が衝突しないことを確認するレイアウト検証
 
-### Task 7.2: Rebalance short-height HUD and controls for expanded combat UI
+### Task 7.2: 戦闘 UI 拡張後に短い画面高向け HUD / 操作を再調整する
 
-- Purpose: preserve readability after adding loadout and special HUD elements.
-- Change targets: responsive CSS, HUD composition, layout verifier.
-- Done when:
-  - the expanded HUD still fits target short-height viewports
-- Validation:
-  - DOM layout checks for representative 320-390px tall landscape screens
+- 目的: ロードアウトとスペシャル HUD を増やしても可読性を保つ。
+- 変更対象: レスポンシブ CSS、HUD 構成、layout verifier。
+- 完了条件:
+  - 拡張された HUD が対象の低い高さのビューポート内に収まる
+- 検証:
+  - 高さ 320-390px の代表的な横画面に対する DOM レイアウトチェック
 
-## Epic 8: Audio and Effects
+## Epic 8: 音響とエフェクト
 
-### Task 8.1: Differentiate weapon audio and feedback
+### Task 8.1: 武器ごとの音とフィードバックを差別化する
 
-- Purpose: make loadouts feel distinct.
-- Change targets: audio bus, effect triggers, hit/paint feedback.
-- Done when:
-  - each main weapon family has distinct fire and impact cues
-- Validation:
-  - manual verification plus effect dispatch tests where practical
+- 目的: 各ロードアウトの手触りを明確にする。
+- 変更対象: オーディオバス、エフェクト発火、ヒット / 塗りフィードバック。
+- 完了条件:
+  - 各メイン武器ファミリーが異なる発射音と着弾演出を持つ
+- 検証:
+  - 手動確認と、可能な範囲でのエフェクト dispatch テスト
 
-### Task 8.2: Add sub/special cue package
+### Task 8.2: サブ / スペシャルの合図パッケージを追加する
 
-- Purpose: improve readability of larger combat interactions.
-- Change targets: audio/effect hooks for ability start, travel, and resolution.
-- Done when:
-  - sub and special usage produce recognizably different cues
-- Validation:
-  - manual verification and runtime smoke test
+- 目的: より大きな戦闘インタラクションの可読性を上げる。
+- 変更対象: アビリティ開始、移動、解決時の音 / エフェクトフック。
+- 完了条件:
+  - サブとスペシャルの使用が、見分けられる合図として出力される
+- 検証:
+  - 手動確認とランタイムのスモークテスト
 
-## Epic 9: QA and Automation
+## Epic 9: QA と自動化
 
-### Task 9.1: Expand unit coverage for definitions and combat families
+### Task 9.1: 定義群と戦闘ファミリーのユニットカバレッジを拡張する
 
-- Purpose: protect the new data-driven architecture.
-- Change targets: tests for definitions, combat, rules, and AI.
-- Done when:
-  - the new data surfaces have dedicated regression coverage
-- Validation:
+- 目的: 新しいデータ駆動アーキテクチャを守る。
+- 変更対象: 定義、戦闘、ルール、AI に対するテスト。
+- 完了条件:
+  - 新しいデータ面に専用の回帰テストがある
+- 検証:
   - `npm test`
 
-### Task 9.2: Extend DOM layout verification for expanded HUD
+### Task 9.2: 拡張 HUD 向けに DOM レイアウト検証を広げる
 
-- Purpose: keep mobile layout stable as UI grows.
-- Change targets: `verify:layout` scenarios and assertions.
-- Done when:
-  - the verifier covers loadout-selection and expanded HUD states
-- Validation:
+- 目的: UI が成長してもモバイルレイアウトを安定させる。
+- 変更対象: `verify:layout` のシナリオとアサーション。
+- 完了条件:
+  - verifier がロードアウト選択状態と拡張 HUD 状態をカバーする
+- 検証:
   - `npm run verify:layout`
 
-### Task 9.3: Add deterministic gameplay smoke coverage for multi-loadout flow
+### Task 9.3: 複数ロードアウト向けの決定的ゲームプレイスモークテストを追加する
 
-- Purpose: ensure a match can boot, play, and end under the richer system.
-- Change targets: Playwright automation and text-state assertions.
-- Done when:
-  - automation can cover loadout selection, ability use, and results flow
-- Validation:
-  - Playwright-based smoke run in a WebGL-capable environment
+- 目的: より豊かなシステムでも、試合が起動し、進行し、終了できることを保証する。
+- 変更対象: Playwright 自動化とテキスト状態アサーション。
+- 完了条件:
+  - 自動化でロードアウト選択、アビリティ使用、リザルトフローをカバーできる
+- 検証:
+  - WebGL 対応環境での Playwright ベースのスモーク実行

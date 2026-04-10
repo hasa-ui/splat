@@ -1,140 +1,140 @@
-# Inkline Arena Roadmap
+# Inkline Arena ロードマップ
 
-## Summary
+## 概要
 
-This roadmap converts the target specification into an implementation order that preserves the current playable prototype while expanding it toward a richer offline ink battle game. The roadmap is intentionally staged so each phase leaves the game playable and testable.
+このロードマップは、目標仕様を現在の実装順に落とし込み、今のプレイ可能なプロトタイプを維持したまま、より充実したオフラインのインクバトルゲームへ拡張していくためのものです。各フェーズの完了時点で、ゲームは引き続きプレイ可能かつ検証可能であることを前提に段階化しています。
 
-## Phase 0: Foundation Refactor
+## フェーズ 0: 基盤リファクタリング
 
-### Goals
+### 目標
 
-- Move current single-weapon assumptions into shared data definitions.
-- Prepare the codebase for multiple stages, loadouts, and rules without changing the playable loop yet.
+- 現在の単一武器前提を共通のデータ定義へ移す。
+- まだプレイフィールは変えずに、複数ステージ、複数ロードアウト、複数ルールへ対応できるコードベースを整える。
 
-### Deliverables
+### 成果物
 
-- `WeaponDefinition`, `SubWeaponDefinition`, `SpecialDefinition`, `LoadoutDefinition`, `MatchRuleDefinition`, and `StageDefinition` introduced.
-- Current shooter, current turf rule, and current stage migrated into data.
-- HUD/state code split so new gauges and loadout metadata can be added without rewriting the entire game loop.
-- Tests added around data-driven weapon/rule/stage selection.
+- `WeaponDefinition`、`SubWeaponDefinition`、`SpecialDefinition`、`LoadoutDefinition`、`MatchRuleDefinition`、`StageDefinition` を導入する。
+- 現在のシューター、現在の Turf ルール、現在のステージをデータ定義へ移行する。
+- HUD / state のコードを分割し、新しいゲージやロードアウト情報をゲームループ全体の書き直しなしで追加できるようにする。
+- データ駆動の武器 / ルール / ステージ選択を対象にしたテストを追加する。
 
-### Dependencies
+### 依存関係
 
-- None. This phase is the foundation for everything else.
+- なし。このフェーズが以降すべての土台になる。
 
-### Acceptance
+### 受け入れ条件
 
-- The current game still plays exactly as before using data-backed definitions.
-- Existing tests still pass.
-- New definitions can be swapped without touching core loop code paths.
+- 現在のゲームが、データ化された定義を使って従来どおりに動作する。
+- 既存テストが引き続き通る。
+- 新しい定義へ差し替えても、コアのループ処理を直接触らずに済む。
 
-## Phase 1: Core Combat Expansion
+## フェーズ 1: コア戦闘の拡張
 
-### Goals
+### 目標
 
-- Add loadout selection and expand the playable core beyond one weapon.
-- Introduce sub weapons and the special gauge loop.
+- ロードアウト選択を追加し、ひとつの武器だけに依存しないプレイ可能な中核を作る。
+- サブウェポンとスペシャルゲージのループを導入する。
 
-### Deliverables
+### 成果物
 
-- Pre-match loadout selection screen.
-- Baseline `Shooter`, `Roller`, and `Charger` loadouts.
-- First-pass sub weapons.
-- First-pass special gauge fill and special activation flow.
-- HUD updates for loadout identity and special meter.
+- 試合前のロードアウト選択画面。
+- 基本ロードアウトとして `Shooter`、`Roller`、`Charger` を実装する。
+- 初期版のサブウェポン。
+- 初期版のスペシャルゲージ蓄積とスペシャル発動フロー。
+- ロードアウト識別とスペシャルメーターに対応した HUD 更新。
 
-### Dependencies
+### 依存関係
 
-- Requires Phase 0 data refactor.
+- フェーズ 0 のデータリファクタリングが前提。
 
-### Acceptance
+### 受け入れ条件
 
-- The player can choose among three loadouts before a match.
-- Each loadout has clearly different paint/combat behavior.
-- Special gauge fills and can be spent during a match.
+- プレイヤーが試合前に 3 種類のロードアウトから選べる。
+- 各ロードアウトに、塗りと戦闘の挙動として明確な差がある。
+- スペシャルゲージが試合中に蓄積し、消費して使える。
 
-## Phase 2: Stage and AI Expansion
+## フェーズ 2: ステージと AI の拡張
 
-### Goals
+### 目標
 
-- Expand the arena variety and make AI understand the richer combat loop.
+- アリーナの種類を増やし、より豊かな戦闘ループを AI が理解できるようにする。
 
-### Deliverables
+### 成果物
 
-- Two additional stages beyond the current map.
-- Stage selection flow or rotation for offline matches.
-- Bot roles: `painter`, `skirmisher`, `anchor`.
-- Bot logic for weapon-aware range, sub use, and special timing.
-- Map-specific navigation and safer lane selection.
+- 現在のマップに加えて 2 つの追加ステージ。
+- オフライン対戦用のステージ選択フロー、またはローテーション機能。
+- ボットの役割として `painter`、`skirmisher`、`anchor` を導入する。
+- 武器に応じた射程判断、サブの使用、スペシャルのタイミングを扱うボットロジック。
+- マップ固有のナビゲーションと、より安全なレーン選択。
 
-### Dependencies
+### 依存関係
 
-- Requires Phase 0 definitions and Phase 1 loadout systems.
+- フェーズ 0 の定義群と、フェーズ 1 のロードアウトシステムが必要。
 
-### Acceptance
+### 受け入れ条件
 
-- All stages can complete full offline matches.
-- Bots no longer behave as generic clones across all loadouts.
-- Common pathing dead-ends and idle stalls are covered by automated checks.
+- すべてのステージでオフライン対戦を最後まで完走できる。
+- ボットがすべてのロードアウトで同じように動く generic clone ではなくなる。
+- 典型的な行き止まり経路や停止状態が自動チェックで検出できる。
 
-## Phase 3: Match Presentation and Onboarding
+## フェーズ 3: 試合演出とオンボーディング
 
-### Goals
+### 目標
 
-- Improve readability, onboarding, and payoff so the game feels more complete.
+- 可読性、導入体験、達成感を高め、ゲームとしての完成度を上げる。
 
-### Deliverables
+### 成果物
 
-- Expanded results screen with contribution details.
-- Tutorial or guided first-match onboarding.
-- Improved SFX, weapon feedback, splat/respawn feedback, and special cues.
-- Mobile HUD polish for the larger combat surface.
+- 貢献内容の詳細を含む拡張リザルト画面。
+- チュートリアル、または初回プレイ向けのガイド付き導線。
+- 改善された SFX、武器フィードバック、スプラット / リスポーン演出、スペシャルの合図。
+- より大きくなった戦闘情報に対応するためのモバイル HUD 調整。
 
-### Dependencies
+### 依存関係
 
-- Benefits from Phases 1 and 2 but can overlap after their interfaces stabilize.
+- フェーズ 1 と 2 の恩恵を受けるが、インターフェースが安定した後であれば一部並行して進められる。
 
-### Acceptance
+### 受け入れ条件
 
-- New players can learn the full loop without outside instructions.
-- Results screens communicate more than final paint percentage.
-- Mobile landscape remains readable under the larger HUD surface.
+- 新規プレイヤーが外部説明なしで一連のループを学べる。
+- リザルト画面が最終塗り割合以上の情報を伝えられる。
+- HUD 情報量が増えても、モバイル横画面で可読性を保てる。
 
-## Phase 4: Offline Progression and Extended Modes
+## フェーズ 4: オフライン進行要素と拡張モード
 
-### Goals
+### 目標
 
-- Add light progression and optional rule depth without changing the offline-first identity.
+- オフラインファーストの前提を崩さず、軽量な進行要素と任意のルール拡張を加える。
 
-### Deliverables
+### 成果物
 
-- Local unlocks for loadouts, stages, or challenge presets.
-- Saved settings and remembered last-selected loadout.
-- Optional experimental rule prototype such as `Area Control`.
+- ローカル保存されるロードアウト、ステージ、またはチャレンジプリセットのアンロック要素。
+- 保存される設定値と、前回選択したロードアウトの記憶。
+- `Area Control` のような任意の実験的ルール試作。
 
-### Dependencies
+### 依存関係
 
-- Requires stable loadout, stage, and results systems from earlier phases.
+- それ以前のフェーズで、ロードアウト、ステージ、リザルト系が安定している必要がある。
 
-### Acceptance
+### 受け入れ条件
 
-- Progression is stored locally and survives browser restarts.
-- Extended rule work does not regress Turf Battle as the primary supported mode.
-- No online systems are introduced.
+- 進行状況がローカルに保存され、ブラウザ再起動後も維持される。
+- 拡張ルールを追加しても、主要対応モードとしての Turf Battle を損なわない。
+- オンライン機能は導入しない。
 
-## Release Strategy
+## リリース戦略
 
-### Milestone A
+### マイルストーン A
 
-- End of Phase 1.
-- Game is materially closer to the target combat fantasy and remains shippable on Pages.
+- フェーズ 1 完了時点。
+- ゲームが目標とする戦闘ファンタジーへ大きく近づきつつ、Pages 上で公開可能な状態を維持する。
 
-### Milestone B
+### マイルストーン B
 
-- End of Phase 2.
-- Game has the minimum breadth expected from a fuller offline ink battle title.
+- フェーズ 2 完了時点。
+- より充実したオフラインのインクバトル作品として期待される最低限の幅を備える。
 
-### Milestone C
+### マイルストーン C
 
-- End of Phase 4.
-- Game has durable content, progression, and optional rule expansion while staying offline-only.
+- フェーズ 4 完了時点。
+- オフライン専用を維持したまま、継続的に遊べるコンテンツ、進行要素、任意のルール拡張を備える。
