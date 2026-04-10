@@ -340,8 +340,7 @@ export class InkGame {
         this.mode = "paused";
         this.input.setEnabled(false);
       } else if (this.mode === "paused") {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
       }
       this.renderCenterCard();
     }
@@ -353,8 +352,7 @@ export class InkGame {
     if (this.mode === "countdown") {
       this.countdown -= dt;
       if (this.countdown <= 0) {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
         this.audio.playUi(760);
         this.renderCenterCard();
       } else {
@@ -578,6 +576,12 @@ export class InkGame {
   private getActorWeapon(actor: ActorState) {
     const loadout = getLoadoutDefinition(actor.loadoutId);
     return getWeaponDefinition(loadout.mainWeaponId);
+  }
+
+  private enterGameplayMode(): void {
+    this.mode = "playing";
+    this.updateCameraPose(this.actors[0]);
+    this.input.setEnabled(true);
   }
 
   private getCameraBasis(actor: ActorState): CameraBasis {
