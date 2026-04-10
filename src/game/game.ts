@@ -588,12 +588,26 @@ export class InkGame {
     };
   }
 
+  private getRenderedCameraBasis(actor: ActorState): CameraBasis {
+    const forward = normalize({
+      x: this.cameraTarget.x - this.camera.position.x,
+      y: this.cameraTarget.z - this.camera.position.z,
+    });
+    if (length(forward) <= 0.001) {
+      return this.getCameraBasis(actor);
+    }
+    return {
+      forward,
+      right: { x: -forward.y, y: forward.x },
+    };
+  }
+
   private projectInputOnCameraPlane(actor: ActorState, input: Vec2): Vec2 {
     const magnitude = length(input);
     if (magnitude <= 0.001) {
       return { x: 0, y: 0 };
     }
-    const basis = this.getCameraBasis(actor);
+    const basis = this.getRenderedCameraBasis(actor);
     return {
       x: basis.right.x * input.x + basis.forward.x * -input.y,
       y: basis.right.y * input.x + basis.forward.y * -input.y,
