@@ -36,6 +36,19 @@ export interface MatchSnapshot {
   timer: number;
   allyCoverage: number;
   enemyCoverage: number;
+  camera: {
+    mode: "overview" | "gameplay";
+    position: {
+      x: number;
+      y: number;
+      z: number;
+    };
+    target: {
+      x: number;
+      y: number;
+      z: number;
+    };
+  };
   player: {
     x: number;
     y: number;
@@ -43,6 +56,8 @@ export interface MatchSnapshot {
     hp: number;
     alive: boolean;
     squid: boolean;
+    facing: number;
+    aim: Vec2;
   };
   bots: Array<{
     id: string;
