@@ -283,8 +283,8 @@ export class InkGame {
         this.audio.playUi(660);
         this.resetRound(true);
       } else if (action === "resume") {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
+        this.renderCenterCard();
       } else if (action === "toggle-audio") {
         this.muted = !this.muted;
         this.audio.setEnabled(!this.muted);
@@ -580,7 +580,10 @@ export class InkGame {
 
   private enterGameplayMode(): void {
     this.mode = "playing";
-    this.updateCameraPose(this.actors[0]);
+    this.updateCameraPose(this.actors[0], true);
+    this.camera.position.copy(this.cameraPosition);
+    this.camera.up.copy(this.up);
+    this.camera.lookAt(this.cameraTarget);
     this.input.setEnabled(true);
   }
 
@@ -618,7 +621,7 @@ export class InkGame {
     };
   }
 
-  private updateCameraPose(player: ActorState): void {
+  private updateCameraPose(player: ActorState, snap = false): void {
     if (this.mode === "playing") {
       const basis = this.getCameraBasis(player);
       this.cameraMode = "gameplay";
@@ -632,7 +635,11 @@ export class InkGame {
         GAMEPLAY_CAMERA_HEIGHT,
         player.pos.y - basis.forward.y * GAMEPLAY_CAMERA_DISTANCE - basis.right.y * GAMEPLAY_CAMERA_SHOULDER,
       );
-      this.cameraPosition.lerp(this.cameraAnchor, GAMEPLAY_CAMERA_LERP);
+      if (snap) {
+        this.cameraPosition.copy(this.cameraAnchor);
+      } else {
+        this.cameraPosition.lerp(this.cameraAnchor, GAMEPLAY_CAMERA_LERP);
+      }
       return;
     }
 
@@ -640,7 +647,11 @@ export class InkGame {
     this.cameraMode = "overview";
     this.cameraTarget.set(focus.x, 0.75, focus.y);
     this.cameraAnchor.set(focus.x - 1.5, 18, focus.y + 13.5);
-    this.cameraPosition.lerp(this.cameraAnchor, OVERVIEW_CAMERA_LERP);
+    if (snap) {
+      this.cameraPosition.copy(this.cameraAnchor);
+    } else {
+      this.cameraPosition.lerp(this.cameraAnchor, OVERVIEW_CAMERA_LERP);
+    }
   }
 
   private getPlayerHudState(player: ActorState): {
