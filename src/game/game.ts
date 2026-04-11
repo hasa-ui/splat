@@ -90,6 +90,10 @@ interface CameraBasis {
   right: Vec2;
 }
 
+interface InkGameOptions {
+  muted?: boolean;
+}
+
 export class InkGame {
   private readonly refs: HudRefs;
   private readonly renderer: WebGLRenderer;
@@ -123,8 +127,9 @@ export class InkGame {
   private manualModeUntil = 0;
   private muted = false;
 
-  constructor(refs: HudRefs) {
+  constructor(refs: HudRefs, options: InkGameOptions = {}) {
     this.refs = refs;
+    this.muted = options.muted ?? false;
     this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = SRGBColorSpace;
@@ -148,6 +153,7 @@ export class InkGame {
       pauseButton: this.refs.pauseButton,
     });
 
+    this.audio.setEnabled(!this.muted);
     this.bindUi();
     this.resetRound(false);
     this.resize();
@@ -162,6 +168,12 @@ export class InkGame {
     cancelAnimationFrame(this.animationHandle);
     window.removeEventListener("resize", this.handleResize);
     window.removeEventListener("pointerdown", this.unlockAudio);
+  }
+
+  launchMatch(): void {
+    this.audio.unlock();
+    this.audio.playUi(660);
+    this.resetRound(true);
   }
 
   private readonly handleResize = () => {
@@ -279,9 +291,7 @@ export class InkGame {
         return;
       }
       if (action === "start" || action === "restart") {
-        this.audio.unlock();
-        this.audio.playUi(660);
-        this.resetRound(true);
+        this.launchMatch();
       } else if (action === "resume") {
         this.enterGameplayMode();
         this.renderCenterCard();
