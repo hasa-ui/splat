@@ -12,6 +12,18 @@ async function stepFrames(page, frames) {
   }
 }
 
+function normalize2d(vector) {
+  const length = Math.hypot(vector.x, vector.y);
+  if (length <= 1e-6) {
+    return { x: 0, y: 0 };
+  }
+  return { x: vector.x / length, y: vector.y / length };
+}
+
+function dot2d(a, b) {
+  return a.x * b.x + a.y * b.y;
+}
+
 async function main() {
   const browser = await chromium.launch({
     headless: true,
@@ -71,8 +83,46 @@ async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
   await page.screenshot({ path: path.join(outputDir, "manual-check.png") });
   const stateText = await page.evaluate(() => (window.render_game_to_text ? window.render_game_to_text() : null));
+  if (!stateText) {
+    throw new Error("render_game_to_text returned no state");
+  }
+  const state = JSON.parse(stateText);
+  if (state.mode !== "playing") {
+    throw new Error(`expected mode=playing, received ${state.mode}`);
+  }
+  if (state.camera?.mode !== "gameplay") {
+    throw new Error(`expected gameplay camera during match, received ${state.camera?.mode}`);
+  }
+  const cameraToPlayer = normalize2d({
+    x: state.player.x - state.camera.position.x,
+    y: state.player.y - state.camera.position.z,
+  });
+  const targetAhead = normalize2d({
+    x: state.camera.target.x - state.player.x,
+    y: state.camera.target.z - state.player.y,
+  });
+  if (dot2d(cameraToPlayer, state.player.aim) < 0.45) {
+    throw new Error("camera is not staying behind the player relative to facing direction");
+  }
+  if (dot2d(targetAhead, state.player.aim) < 0.45) {
+    throw new Error("camera target is not looking ahead of the player");
+  }
+
+  await page.keyboard.press("Escape");
+  await stepFrames(page, 2);
+  const pausedText = await page.evaluate(() => (window.render_game_to_text ? window.render_game_to_text() : null));
+  const pausedState = pausedText ? JSON.parse(pausedText) : null;
+  if (!pausedState || pausedState.mode !== "paused") {
+    throw new Error(`expected mode=paused after Escape, received ${pausedState?.mode}`);
+  }
+  if (pausedState.camera?.mode !== "overview") {
+    throw new Error(`expected overview camera while paused, received ${pausedState.camera?.mode}`);
+  }
   if (stateText) {
     fs.writeFileSync(path.join(outputDir, "manual-state.json"), stateText);
+  }
+  if (pausedText) {
+    fs.writeFileSync(path.join(outputDir, "paused-state.json"), pausedText);
   }
   if (errors.length) {
     fs.writeFileSync(path.join(outputDir, "manual-errors.log"), errors.join("\n"));
@@ -82,7 +132,8 @@ async function main() {
     JSON.stringify(
       {
         errors,
-        stateText,
+        state,
+        pausedState,
       },
       null,
       2,

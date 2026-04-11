@@ -49,6 +49,13 @@ const ALLY = new Color("#1fe4a8");
 const ENEMY = new Color("#ff5c8a");
 const INVULN_TINT = new Color("#f8fff7");
 const ARENA_CENTER = new Vector3(0, 0, 0);
+const GAMEPLAY_CAMERA_HEIGHT = 4.4;
+const GAMEPLAY_CAMERA_DISTANCE = 5.6;
+const GAMEPLAY_CAMERA_SHOULDER = 1.05;
+const GAMEPLAY_CAMERA_LOOK_AHEAD = 4.2;
+const GAMEPLAY_CAMERA_TARGET_HEIGHT = 1.65;
+const GAMEPLAY_CAMERA_LERP = 0.18;
+const OVERVIEW_CAMERA_LERP = 0.12;
 
 interface HudRefs {
   shell: HTMLElement;
@@ -78,6 +85,11 @@ interface ActorVisual {
   shadow: Mesh;
 }
 
+interface CameraBasis {
+  forward: Vec2;
+  right: Vec2;
+}
+
 export class InkGame {
   private readonly refs: HudRefs;
   private readonly renderer: WebGLRenderer;
@@ -100,7 +112,8 @@ export class InkGame {
   private readonly up = new Vector3(0, 1, 0);
   private readonly cameraTarget = new Vector3();
   private readonly cameraPosition = new Vector3();
-  private readonly pointerHint = new Vector3();
+  private readonly cameraAnchor = new Vector3();
+  private cameraMode: MatchSnapshot["camera"]["mode"] = "overview";
   private mode: GameMode = "title";
   private matchTimer = this.matchRuleDefinition.durationSeconds;
   private countdown = COUNTDOWN_SECONDS;
@@ -270,8 +283,8 @@ export class InkGame {
         this.audio.playUi(660);
         this.resetRound(true);
       } else if (action === "resume") {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
+        this.renderCenterCard();
       } else if (action === "toggle-audio") {
         this.muted = !this.muted;
         this.audio.setEnabled(!this.muted);
@@ -327,8 +340,7 @@ export class InkGame {
         this.mode = "paused";
         this.input.setEnabled(false);
       } else if (this.mode === "paused") {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
       }
       this.renderCenterCard();
     }
@@ -340,8 +352,7 @@ export class InkGame {
     if (this.mode === "countdown") {
       this.countdown -= dt;
       if (this.countdown <= 0) {
-        this.mode = "playing";
-        this.input.setEnabled(true);
+        this.enterGameplayMode();
         this.audio.playUi(760);
         this.renderCenterCard();
       } else {
@@ -374,8 +385,9 @@ export class InkGame {
     }
 
     const input = this.input.getFrameInput();
-    const move = normalize(input.move);
-    const aim = length(input.aim) > 0.08 ? normalize(input.aim) : actor.aim;
+    const move = normalize(this.projectInputOnCameraPlane(actor, input.move));
+    const aimInput = this.projectInputOnCameraPlane(actor, input.aim);
+    const aim = length(aimInput) > 0.08 ? normalize(aimInput) : actor.aim;
     const desiredAngle = this.applyAimAssist(actor, vectorToAngle(aim));
     actor.angle = rotateToward(actor.angle, desiredAngle, dt * 8.2);
     actor.aim = angleToVector(actor.angle);
@@ -564,6 +576,82 @@ export class InkGame {
   private getActorWeapon(actor: ActorState) {
     const loadout = getLoadoutDefinition(actor.loadoutId);
     return getWeaponDefinition(loadout.mainWeaponId);
+  }
+
+  private enterGameplayMode(): void {
+    this.mode = "playing";
+    this.updateCameraPose(this.actors[0], true);
+    this.camera.position.copy(this.cameraPosition);
+    this.camera.up.copy(this.up);
+    this.camera.lookAt(this.cameraTarget);
+    this.input.setEnabled(true);
+  }
+
+  private getCameraBasis(actor: ActorState): CameraBasis {
+    const forward = length(actor.aim) > 0.001 ? normalize(actor.aim) : angleToVector(actor.angle);
+    return {
+      forward,
+      right: { x: -forward.y, y: forward.x },
+    };
+  }
+
+  private getRenderedCameraBasis(actor: ActorState): CameraBasis {
+    const forward = normalize({
+      x: this.cameraTarget.x - this.camera.position.x,
+      y: this.cameraTarget.z - this.camera.position.z,
+    });
+    if (length(forward) <= 0.001) {
+      return this.getCameraBasis(actor);
+    }
+    return {
+      forward,
+      right: { x: -forward.y, y: forward.x },
+    };
+  }
+
+  private projectInputOnCameraPlane(actor: ActorState, input: Vec2): Vec2 {
+    const magnitude = length(input);
+    if (magnitude <= 0.001) {
+      return { x: 0, y: 0 };
+    }
+    const basis = this.getRenderedCameraBasis(actor);
+    return {
+      x: basis.right.x * input.x + basis.forward.x * -input.y,
+      y: basis.right.y * input.x + basis.forward.y * -input.y,
+    };
+  }
+
+  private updateCameraPose(player: ActorState, snap = false): void {
+    if (this.mode === "playing") {
+      const basis = this.getCameraBasis(player);
+      this.cameraMode = "gameplay";
+      this.cameraTarget.set(
+        player.pos.x + basis.forward.x * GAMEPLAY_CAMERA_LOOK_AHEAD,
+        GAMEPLAY_CAMERA_TARGET_HEIGHT,
+        player.pos.y + basis.forward.y * GAMEPLAY_CAMERA_LOOK_AHEAD,
+      );
+      this.cameraAnchor.set(
+        player.pos.x - basis.forward.x * GAMEPLAY_CAMERA_DISTANCE - basis.right.x * GAMEPLAY_CAMERA_SHOULDER,
+        GAMEPLAY_CAMERA_HEIGHT,
+        player.pos.y - basis.forward.y * GAMEPLAY_CAMERA_DISTANCE - basis.right.y * GAMEPLAY_CAMERA_SHOULDER,
+      );
+      if (snap) {
+        this.cameraPosition.copy(this.cameraAnchor);
+      } else {
+        this.cameraPosition.lerp(this.cameraAnchor, GAMEPLAY_CAMERA_LERP);
+      }
+      return;
+    }
+
+    const focus = this.mode === "title" ? { x: 0, y: 0 } : player.pos;
+    this.cameraMode = "overview";
+    this.cameraTarget.set(focus.x, 0.75, focus.y);
+    this.cameraAnchor.set(focus.x - 1.5, 18, focus.y + 13.5);
+    if (snap) {
+      this.cameraPosition.copy(this.cameraAnchor);
+    } else {
+      this.cameraPosition.lerp(this.cameraAnchor, OVERVIEW_CAMERA_LERP);
+    }
   }
 
   private getPlayerHudState(player: ActorState): {
@@ -773,10 +861,7 @@ export class InkGame {
 
   private renderFrame(time: number): void {
     const player = this.actors[0];
-    const focus = this.mode === "title" ? { x: 0, y: 0 } : player.pos;
-    this.cameraTarget.set(focus.x, 0.75, focus.y + (this.mode === "playing" ? 1.6 : 0));
-    this.pointerHint.set(focus.x - 1.5, 18, focus.y + 13.5);
-    this.cameraPosition.lerp(this.pointerHint, 0.12);
+    this.updateCameraPose(player);
     this.camera.position.copy(this.cameraPosition);
     this.camera.up.copy(this.up);
     this.camera.lookAt(this.cameraTarget.lengthSq() > 0 ? this.cameraTarget : ARENA_CENTER);
@@ -829,6 +914,19 @@ export class InkGame {
         timer: Number(this.matchTimer.toFixed(2)),
         allyCoverage: Number(coverage.ally.toFixed(2)),
         enemyCoverage: Number(coverage.enemy.toFixed(2)),
+        camera: {
+          mode: this.cameraMode,
+          position: {
+            x: Number(this.camera.position.x.toFixed(2)),
+            y: Number(this.camera.position.y.toFixed(2)),
+            z: Number(this.camera.position.z.toFixed(2)),
+          },
+          target: {
+            x: Number(this.cameraTarget.x.toFixed(2)),
+            y: Number(this.cameraTarget.y.toFixed(2)),
+            z: Number(this.cameraTarget.z.toFixed(2)),
+          },
+        },
         player: {
           x: Number(this.actors[0].pos.x.toFixed(2)),
           y: Number(this.actors[0].pos.y.toFixed(2)),
@@ -836,6 +934,11 @@ export class InkGame {
           hp: this.actors[0].hp,
           alive: this.actors[0].alive,
           squid: this.actors[0].squid,
+          facing: Number(this.actors[0].angle.toFixed(2)),
+          aim: {
+            x: Number(this.actors[0].aim.x.toFixed(2)),
+            y: Number(this.actors[0].aim.y.toFixed(2)),
+          },
         },
         bots: this.actors.slice(1).map((actor) => ({
           id: actor.id,
