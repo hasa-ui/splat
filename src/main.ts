@@ -112,6 +112,19 @@ function renderBootError(centerNote: HTMLElement): void {
   `;
 }
 
+function hasWebGlSupport(): boolean {
+  const canvas = document.createElement("canvas");
+  try {
+    return Boolean(
+      canvas.getContext("webgl2", { alpha: true }) ||
+        canvas.getContext("webgl", { alpha: true }) ||
+        canvas.getContext("experimental-webgl"),
+    );
+  } catch {
+    return false;
+  }
+}
+
 const app = document.querySelector<HTMLElement>("#app");
 
 if (!app) {
@@ -120,13 +133,22 @@ if (!app) {
 
 createShell(app);
 const refs = collectGameRefs(app);
+refs.pauseButton.style.display = "none";
 let game: InkGame | null = null;
 let muted = false;
 let loadingGame = false;
+const webglSupported = hasWebGlSupport();
 
-renderBootstrapCard(refs.centerNote, muted, loadingGame);
+if (webglSupported) {
+  renderBootstrapCard(refs.centerNote, muted, loadingGame);
+} else {
+  renderBootError(refs.centerNote);
+}
 
 async function loadGame(): Promise<InkGame | null> {
+  if (!webglSupported) {
+    return null;
+  }
   if (game) {
     return game;
   }
@@ -139,12 +161,14 @@ async function loadGame(): Promise<InkGame | null> {
 
   try {
     const { InkGame } = await import("./game/game");
+    refs.pauseButton.style.display = "";
     game = new InkGame(refs, { muted });
     window.addEventListener("beforeunload", () => {
       game?.dispose();
     });
     return game;
   } catch (error) {
+    refs.pauseButton.style.display = "none";
     renderBootError(refs.centerNote);
     console.error(error);
     return null;
